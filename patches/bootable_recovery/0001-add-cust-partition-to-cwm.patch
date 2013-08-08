@@ -1,0 +1,115 @@
+From 508ffb0102b9b0a89b29ec892b878d8a466519b3 Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Wed, 7 Aug 2013 23:01:08 +0200
+Subject: [PATCH] add-cust-partition-to-cwm
+
+---
+ edifyscripting.c   |  8 ++++++++
+ extendedcommands.c |  8 ++++++++
+ extendedcommands.h |  4 +++-
+ nandroid.c         | 10 ++++++++++
+ 4 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/edifyscripting.c b/edifyscripting.c
+index 68ac4f0..a51edee 100644
+--- a/edifyscripting.c
++++ b/edifyscripting.c
+@@ -146,6 +146,14 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
+         free(path);
+         return StringValue(strdup(""));
+     }
++
++if (strcmp(path, "/system") == 0 && has_cust()) {
++        ui_print("Formatting /cust...\n", path);
++        if (0 != format_volume("/cust")) {
++            free(path);
++            return StringValue(strdup(""));
++        }
++    }
+     
+     if (strcmp(path, "/data") == 0 && has_datadata()) {
+         ui_print("Formatting /datadata...\n", path);
+diff --git a/extendedcommands.c b/extendedcommands.c
+index 7ceed7c..ceda910 100644
+--- a/extendedcommands.c
++++ b/extendedcommands.c
+@@ -1469,6 +1469,7 @@ void create_fstab()
+     write_fstab_root("/data", file);
+     write_fstab_root("/datadata", file);
+     write_fstab_root("/emmc", file);
++    write_fstab_root("/cust", file);
+     write_fstab_root("/system", file);
+     write_fstab_root("/sdcard", file);
+     write_fstab_root("/sd-ext", file);
+@@ -1518,6 +1519,8 @@ void process_volumes() {
+     ret |= bml_check_volume("/data");
+     if (has_datadata())
+         ret |= bml_check_volume("/datadata");
++    if (has_cust())
++        ret |= bml_check_volume("/cust");
+     ret |= bml_check_volume("/cache");
+     
+     if (ret == 0) {
+@@ -1587,6 +1590,11 @@ int has_datadata() {
+     return vol != NULL;
+ }
+ 
++int has_cust() {
++    Volume *vol = volume_for_path("/cust");
++    return vol != NULL;
++}
++
+ int volume_main(int argc, char **argv) {
+     load_volume_table();
+     return 0;
+diff --git a/extendedcommands.h b/extendedcommands.h
+index f6782f7..a141c83 100644
+--- a/extendedcommands.h
++++ b/extendedcommands.h
+@@ -49,6 +49,8 @@ void create_fstab();
+ 
+ int has_datadata();
+ 
++int has_cust();
++
+ void handle_failure(int ret);
+ 
+ void process_volumes();
+@@ -66,4 +68,4 @@ int verify_root_and_recovery();
+ #ifdef RECOVERY_EXTEND_NANDROID_MENU
+ void extend_nandroid_menu(char** items, int item_count, int max_items);
+ void handle_nandroid_menu(int item_count, int selected);
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/nandroid.c b/nandroid.c
+index 32b93f8..3f4cc94 100644
+--- a/nandroid.c
++++ b/nandroid.c
+@@ -394,6 +394,11 @@ int nandroid_backup(const char* backup_path)
+     if (0 != (ret = nandroid_backup_partition(backup_path, "/system")))
+         return ret;
+ 
++    if (has_cust()) {
++        if (0 != (ret = nandroid_backup_partition(backup_path, "/cust")))
++            return ret;
++    }
++
+     if (0 != (ret = nandroid_backup_partition(backup_path, "/data")))
+         return ret;
+ 
+@@ -783,6 +788,11 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
+     if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "/system")))
+         return ret;
+ 
++    if (has_cust()) {
++        if (restore_system && 0 != (ret = nandroid_restore_partition(backup_path, "/cust")))
++            return ret;
++    }
++
+     if (restore_data && 0 != (ret = nandroid_restore_partition(backup_path, "/data")))
+         return ret;
+ 
+-- 
+1.8.1.2
+
