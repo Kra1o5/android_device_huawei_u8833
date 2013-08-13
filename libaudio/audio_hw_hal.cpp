@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "audio.primary.msm7627a==QIWU==HW_HAL=="
+#define LOG_TAG "audio.primary.msm7627a"
 //#define LOG_NDEBUG 0
 
 #include <stdint.h>

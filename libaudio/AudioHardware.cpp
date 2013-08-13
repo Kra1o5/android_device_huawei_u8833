@@ -18,7 +18,7 @@
 #include <math.h>
 
 //#define LOG_NDEBUG 0
-#define LOG_TAG "AudioHardwareMSM76XXA===QIWU=="
+#define LOG_TAG "AudioHardwareMSM76XXA"
 #include <utils/Log.h>
 #include <utils/String8.h>
 #include <stdio.h>
