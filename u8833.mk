@@ -60,7 +60,8 @@ PRODUCT_PACKAGES += \
 
 # GPS
 PRODUCT_PACKAGES += \
-    gps.u8833
+    gps.u8833 \
+	libloc_api-rpc
 	
 # u8833 specific	
 PRODUCT_PACKAGES += \
