@@ -1,0 +1,29 @@
+From 8ef8384bd07e3109a9159600eccf21d5aa196d69 Mon Sep 17 00:00:00 2001
+From: Matt Filetto <matt.filetto@gmail.com>
+Date: Mon, 15 Apr 2013 12:58:21 -0700
+Subject: [PATCH] Allow to setup fps manually
+
+Change-Id: Ida4b2b5006906070822e52ef98236407615da70e
+---
+ libgralloc/framebuffer.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/libgralloc/framebuffer.cpp b/libgralloc/framebuffer.cpp
+index a149b3a..e2aab30 100644
+--- a/libgralloc/framebuffer.cpp
++++ b/libgralloc/framebuffer.cpp
+@@ -311,7 +311,11 @@ int mapFrameBufferLocked(struct private_module_t* module)
+     float xdpi = (info.xres * 25.4f) / info.width;
+     float ydpi = (info.yres * 25.4f) / info.height;
+     //The reserved[3] field is used to store FPS by the driver.
++#ifndef REFRESH_RATE
+     float fps  = info.reserved[3] & 0xFF;
++#else
++    float fps  = REFRESH_RATE;
++#endif
+ 
+     ALOGI("using (fd=%d)\n"
+           "id           = %s\n"
+-- 
+1.8.1.2
+

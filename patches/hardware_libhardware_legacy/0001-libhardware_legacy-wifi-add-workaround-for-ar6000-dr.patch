@@ -1,0 +1,43 @@
+From faa1e34f3a2809f3e129513e5709ac8bb603db30 Mon Sep 17 00:00:00 2001
+From: Conn O'Griofa <connogriofa@gmail.com>
+Date: Wed, 7 Nov 2012 19:29:04 -0200
+Subject: [PATCH] libhardware_legacy/wifi: add workaround for ar6000 driver
+
+The ar6000 driver requires the interface to be brought up in order
+for scanning to function. Without this change, the supplicant fails
+on first activation of wifi, and will only connect successfully
+after multiple retries. This workaround is also necessary to fix
+Wi-Fi hotspot mode (in conjunction with another change to
+system/netd).
+
+Backported from CM7.
+
+Change-Id: I11fa55ab23295d40041df097450b73484f52b042
+---
+ wifi/wifi.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/wifi/wifi.c b/wifi/wifi.c
+index 90b7632..6f70e42 100644
+--- a/wifi/wifi.c
++++ b/wifi/wifi.c
+@@ -881,6 +881,16 @@ int wifi_start_supplicant(int p2p_supported)
+         serial = pi->serial;
+     }
+ #endif
++
++#ifdef WIFI_DRIVER_MODULE_PATH
++    /* The ar6k driver needs the interface up in order to scan! */
++    if (!strncmp(DRIVER_MODULE_NAME, "ar6000", 6)) {
++        ifc_init();
++        ifc_up("eth0");
++        sleep(2);
++    }
++#endif
++
+     property_get("wifi.interface", primary_iface, WIFI_TEST_INTERFACE);
+ 
+     property_set("ctl.start", supplicant_name);
+-- 
+1.8.1.2
+
