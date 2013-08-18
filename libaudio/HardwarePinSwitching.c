@@ -39,7 +39,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
-#define LOG_TAG "BTFMPinSwitching==QIWU=="
+#define LOG_TAG "BTFMPinSwitching"
 #include <utils/Log.h>
 //#define DEBUG_CHK 1
 

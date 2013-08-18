@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "AudioPolicyManager7627a==QIWU=="
+#define LOG_TAG "AudioPolicyManager7627a"
 //#define LOG_NDEBUG 0
 
 //#define VERY_VERBOSE_LOGGING
