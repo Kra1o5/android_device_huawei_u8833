@@ -46,8 +46,6 @@ PRODUCT_PACKAGES += \
     copybit.msm7x27a \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
-    libgenlock \
-    libI420colorconvert \
     libtilerenderer
 
 # Audio
@@ -85,6 +83,7 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8833/ramdisk/init.huawei.usb.rc:root/init.huawei.usb.rc \
     device/huawei/u8833/ramdisk/fstab.huawei:root/fstab.huawei \
     device/huawei/u8833/ramdisk/ueventd.huawei.rc:root/ueventd.huawei.rc \
+	device/huawei/u8833/ramdisk/init.qcom.ril.path.sh:root/init.qcom.ril.path.sh \
     device/huawei/u8833/ramdisk/tp/1191601.img:root/tp/1191601.img
 	
 PRODUCT_COPY_FILES += \

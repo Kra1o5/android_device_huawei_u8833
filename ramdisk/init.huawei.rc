@@ -1,8 +1,6 @@
 import init.huawei.usb.rc
 
 on early-boot
-    start comp-set
-    start rendering-set
     start qcamerasvr
     start gpu_dcvsd
 
@@ -173,13 +171,14 @@ on boot
 on emmc-fs
     # mount mmc partitions
     mount_all /fstab.huawei
+	
+	write /sys/module/block2mtd/parameters/block2mtd /dev/block/mmcblk0p14
 
 on post-fs
     copy /proc/modem_panic /data/dontpanic/modem_panic
     chown root log /data/dontpanic/modem_panic
     chmod 0640 /data/dontpanic/modem_panic
     export_rc /persist/init.cne.rc
-    exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
 
 service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
     class main
@@ -362,7 +361,7 @@ service bridgemgrd /system/bin/bridgemgrd
     disabled
 
 service port-bridge /system/bin/port-bridge /dev/smd0 /dev/ttyGS0
-    class late_start
+    class main
     user system
     group system inet
     disabled
@@ -373,12 +372,14 @@ service qmiproxy /system/bin/qmiproxy
     group radio
     disabled
 
-service pcm-bridge /system/bin/pcm-bridge /dev/smd7 /dev/ttyGS1
+service atserver /system/bin/atserver
+    class core
+    oneshot
 
 service qmuxd /system/bin/qmuxd
     class main
     user radio
-    group radio audio bluetooth gps
+    group radio
 
 
 service netmgrd /system/bin/netmgrd
@@ -414,13 +415,6 @@ service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
     disabled
     oneshot
 
-service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
-    class main
-    user root
-    group system qcom_oncrpc
-    disabled
-    oneshot
-
 service oem_rpc_svc /system/bin/oem_rpc_svc
     class main
     oneshot
@@ -444,27 +438,13 @@ on property:drmdiag.load=1
 
 on property:drmdiag.load=0
     stop drmdiag
-
-service qcom-sh /system/bin/sh /init.qcom.sh
-    class late_start
-    user root
-    oneshot
+	
 service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
     disabled
 
 service compassd /system/bin/compassd
     class main
     disabled
-    oneshot
-
-service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
-    class late_start
-    user root
-    disabled
-    oneshot
-
-service qcom-wifi /system/bin/sh /system/etc/init.qcom.wifi.sh
-    class late_start
     oneshot
     
 service akm8975 /system/bin/akmd8975
@@ -478,11 +458,6 @@ service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
     group root
     oneshot
     disabled
-    
-service akm8962 /system/bin/akmd8962
-    class main
-    disabled
-    oneshot
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class main
@@ -492,12 +467,7 @@ service rmt_oeminfo /system/bin/rmt_oeminfo
 on property:ro.emmc=1
     start rmt_oeminfo
     start rmt_storage
-
-service qcom-sh /system/bin/sh /init.qcom.sh
-    class main
-    user root
-    oneshot
-
+	
 service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
     class main
     user root
@@ -547,20 +517,13 @@ service akm8963 /system/bin/akmd8963
     class main
     disabled
     oneshot
-    
-service akm8962 /system/bin/akmd8962
-    class main
-    disabled
-    oneshot
 
 on property:net.service.pppd.enable=1
     exec /system/bin/rmmod pppoe.ko    
     exec /system/bin/netcfg rmnet0 down
-    insmod /system/lib/modules/pppoe_dzc.ko
     start pppd2
 on property:net.service.pppd.enable=0
     stop pppd2
-    exec /system/bin/rmmod pppoe_dzc.ko    
     insmod /system/lib/modules/pppoe.ko
 
 service gps_check /system/bin/gps_check
@@ -575,20 +538,6 @@ service pppd-gprs /system/bin/pppd call gprs
     group radio cache inet misc audio sdcard_rw qcom_oncrpc diag
     oneshot
     disabled
-    
-service comp-set /system/bin/sh /system/etc/init.qcom.composition_type.sh
-    class late_start
-    user root
-    critical
-    disabled
-    oneshot
-
-service rendering-set /system/bin/sh /system/etc/init.qcom.rendering.sh
-    class late_start
-    user root
-    critical
-    disabled
-    oneshot
 
 #start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
