@@ -99,7 +99,9 @@ TARGET_PROVIDES_LIBLIGHTS := true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_QCOM := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/huawei/u8833/bluetooth
+BOARD_BLUEDROID_VENDOR_CONF := device/huawei/u8833/bluetooth/vnd_u8833.txt
 
 # Camera
 USE_CAMERA_STUB := false
