@@ -15,16 +15,17 @@ debug.camcorder.disablemeta=1
 ro.cwm.enable_key_repeat=true
 
 # Dalvik
+dalvik.vm.heapstartsize=5m
 dalvik.vm.heapgrowthlimit=48m
 dalvik.vm.heapsize=128m
-dalvik.vm.heapstartsize=5m
+dalvik.vm.heaptargetutilization=0.25
+dalvik.vm.heapminfree=512k
+dalvik.vm.heapmaxfree=2m 
 
 # Display
 debug.hwc.dynThreshold=1.91
 debug.sf.swaprect=1
 debug.composition.type=mdp
-persist.sys.use_dithering=2
-debug.gr.numframebuffers=3
 ro.max.fling_velocity=4000
 ro.opengles.version=131072
 ro.sf.lcd_density=240
@@ -59,8 +60,9 @@ rild.libargs=-d /dev/smd0
 rild.libpath=/system/lib/libril-qc-1.so
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false
-ro.telephony.call_ring.delay=3000
 ro.telephony.ril.v3=qcomdsds
+ro.use_data_netmgrd=true
+ro.multi.rild=false
 
 # USB
 persist.sys.usb.config=mtp,adb
