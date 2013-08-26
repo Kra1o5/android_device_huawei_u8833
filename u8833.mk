@@ -35,17 +35,18 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 
 # Video
 PRODUCT_PACKAGES += \
+    libstagefrighthw \
+    libmm-omxcore \
+    libOmxCore \
     libOmxVdec \
-    libOmxVenc \
-    libOmxAacEnc \
-    libOmxAmrEnc \
-    libstagefrighthw
+    libOmxVenc
 
 # Graphics
 PRODUCT_PACKAGES += \
     copybit.msm7x27a \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
+	libgenlock \
     libtilerenderer
 
 # Audio
@@ -59,7 +60,7 @@ PRODUCT_PACKAGES += \
 # GPS
 PRODUCT_PACKAGES += \
     gps.u8833 \
-	libloc_api-rpc
+    libloc_api-rpc
 	
 # u8833 specific	
 PRODUCT_PACKAGES += \

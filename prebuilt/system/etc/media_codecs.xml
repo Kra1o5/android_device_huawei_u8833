@@ -62,50 +62,6 @@
         <MediaCodec name="OMX.google.h263.encoder" type="video/3gpp" />
     </Encoders>
     <Decoders>
-        <!-- Audio Hardware  -->
-        <!--DTS2012101904259 zhudengkui 00180854 20121018 begin-->
-        <!-- remove qcom hardware decoder  -->
-        <!--
-        <MediaCodec name="OMX.qcom.audio.decoder.Qcelp13Hw" type="audio/qcelp" >
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.evrchw" type="audio/evrc" >
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.ac3" type="audio/ac3" >
-            <Quirk name="requires-allocate-on-input-ports" />
-            <Quirk name="requires-allocate-on-output-ports" />
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.eac3" type="audio/eac3" >
-            <Quirk name="requires-allocate-on-input-ports" />
-            <Quirk name="requires-allocate-on-output-ports" />
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.wma" type="audio/x-ms-wma" >
-            <Quirk name="requires-global-flush" />
-            <Quirk name="requires-wma-pro-component" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.wmaLossLess" type="audio/x-ms-wma" >
-            <Quirk name="requires-global-flush" />
-            <Quirk name="requires-wma-pro-component" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.wma10Pro" type="audio/x-ms-wma" >
-            <Quirk name="requires-global-flush" />
-            <Quirk name="requires-wma-pro-component" />
-        </MediaCodec>
-        <MediaCodec name="OMX.qcom.audio.decoder.mp3" type="audio/mpeg" >
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        -->
-        <!--DTS2012101904259 zhudengkui 00180854 20121018 end-->
-        <!--DTS2012090605996 ganquan 00195688 20120906 begin-->
-        <!--
-        <MediaCodec name="OMX.qcom.audio.decoder.aac" type="audio/mp4a-latm" >
-            <Quirk name="requires-global-flush" />
-        </MediaCodec>
-        -->
-        <!--DTS2012090605996 ganquan 00195688 20120906 end-->
         <!-- Audio Software  -->
         <MediaCodec name="OMX.google.vorbis.decoder" type="audio/vorbis" />
         <MediaCodec name="OMX.google.mp3.decoder" type="audio/mpeg" />

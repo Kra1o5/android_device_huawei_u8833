@@ -7,19 +7,19 @@ on early-boot
 on init
     mkdir /cust
     mkdir /storage 0050 system sdcard_r
+	mkdir /storage/sdcard1 0000 system system
     mkdir /storage/sdcard0 0000 system system
-    mkdir /storage/sdcard1 0000 system system
 
-    # for backwards compatibility
-    symlink /storage/sdcard0 /mnt/sdcard
-    symlink /storage/sdcard0 /sdcard
-    symlink /storage/sdcard1 /external_sd
-    symlink /storage/sdcard1 /mnt/external_sd
+    # For backwards compatibility
+	symlink /storage/sdcard1 /mnt/sdcard
+    symlink /storage/sdcard1 /sdcard
+    symlink /storage/sdcard0 /mnt/internal_sd
+    symlink /storage/sdcard0 /internal_sd
 
-    export EXTERNAL_STORAGE /storage/sdcard0
-    export SECONDARY_STORAGE /storage/sdcard1
-	
-    # can start monitoring.
+    export EXTERNAL_STORAGE /storage/sdcard1
+    export SECONDARY_STORAGE /storage/sdcard0
+
+    # Can start monitoring.
     mkdir /dev/bus 0755 root root
     mkdir /dev/bus/usb 0755 root root
 
@@ -40,7 +40,7 @@ on boot
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
 
-    #Create QMUX deamon socket area
+    # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
     mkdir /dev/socket/qmux_audio 0770 media audio
@@ -53,23 +53,22 @@ on boot
     # Allow QMUX daemon to assign port open wait time
     chown radio radio /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
 
-
     setprop wifi.interface eth0
 
     # Enable Bluetooth 802.11 PAL when Bluetooth is turned on
     setprop ro.config.bt.amp no
 
-    # port-bridge
+    # Port-bridge
     chmod 0660 /dev/smd0
     chown system system /dev/smd0
 
-    #BT DUN port-bridge
+    # BT DUN port-bridge
     chmod 0660 /dev/smd7
     chown bluetooth bluetooth /dev/smd7
 
     chmod 0444 /sys/devices/platform/msm_hsusb/gadget/usb_state
 
-    # create symlink for fb1 as HDMI
+    # Create symlink for fb1 as HDMI
     symlink /dev/graphics/fb1 /dev/graphics/hdmi
 
     # Remove write permissions to video related nodes
@@ -169,9 +168,9 @@ on boot
     chmod 0660 /sys/kernel/debug/tracing/trace
 
 on emmc-fs
-    # mount mmc partitions
+    # Mount mmc partitions
     mount_all /fstab.huawei
-	
+
 	write /sys/module/block2mtd/parameters/block2mtd /dev/block/mmcblk0p14
 
 on post-fs
@@ -185,7 +184,7 @@ service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
     user root
     oneshot
 
-# msm specific files that need to be created on /data
+# Msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
 
@@ -201,7 +200,7 @@ on post-fs-data
     chown bluetooth system /data/btaddr
     chmod 0660 /data/btaddr
 
-#create  WIFI filesystem structure
+# Create  WIFI filesystem structure
     mkdir /data/misc
     chmod 01771 /data/misc/
     chown system misc /data/misc/
@@ -269,23 +268,23 @@ on post-fs-data
     chmod 2770 /data/radio
     chown system system /sys/devices/platform/mmi_key_dev/keytest
 
-    #Create directories for gpsone_daemon services
+    # Create directories for gpsone_daemon services
     mkdir /data/misc/gpsone_d 0770 system gps
 
-    #Create directories for QuIPS
+    # Create directories for QuIPS
     mkdir /data/misc/quipc 0770 gps system
-    #Create directories for Location services
+    # Create directories for Location services
     mkdir /data/misc/location/xtwifi 0770 gps gps
 
-    #Create directory from IMS services
+    # Create directory from IMS services
     mkdir /data/shared 0755
     chown system system /data/shared
 
-    #Create directory for FOTA
+    # Create directory for FOTA
     mkdir /data/fota 0771
     chown system system /data/fota
 
-    #Provide the access to hostapd.conf only to root and group
+    # Provide the access to hostapd.conf only to root and group
     chmod 0660 /data/hostapd/hostapd.conf
 
     # Create /data/time folder for time-services
@@ -296,7 +295,6 @@ on post-fs-data
 	start qmuxd
     start netmgrd
     start ril-qmi
-    start wlan_detect
 
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
@@ -310,49 +308,6 @@ on property:bluetooth.isEnabled=false
   
 on property:vold.decrypt=trigger_restart_framework
     start qcom-c_main-sh
-  
-service rmt_storage /system/bin/rmt_storage
-    class main
-    user root
-    disabled
-
-service hwdevctl /system/bin/hwdevctlservice
-    class main
-    user system
-    group graphics
-    
-service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
-    class late_start
-    user bluetooth
-    group qcom_oncrpc bluetooth net_bt_admin system
-    disabled
-    oneshot
-
-service bt-dun /system/bin/dun-server /dev/smd7 /dev/rfcomm0
-    class late_start
-    user bluetooth
-    group bluetooth net_bt_admin inet
-    disabled
-    oneshot
-
-service bt-sap /system/bin/sapd 15
-    class late_start
-    disabled
-    oneshot
-
-service sapd /system/bin/sdptool add --channel=15 SAP
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
-
-service dund /system/bin/sdptool add --channel=1 DUN
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
 
 service bridgemgrd /system/bin/bridgemgrd
     class main
@@ -386,7 +341,7 @@ service netmgrd /system/bin/netmgrd
     class main
 
 on property:ro.use_data_netmgrd=false
-    # netmgr not supported on specific target
+    # Netmgrd not supported on specific target
     stop netmgrd
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -ieth0 -puse_p2p_group_interface=1 -W -c/data/misc/wifi/wpa_supplicant.conf
@@ -438,7 +393,7 @@ on property:drmdiag.load=1
 
 on property:drmdiag.load=0
     stop drmdiag
-	
+
 service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
     disabled
 
@@ -446,18 +401,19 @@ service compassd /system/bin/compassd
     class main
     disabled
     oneshot
-    
+	    
+service akm8963 /system/bin/akmd8963
+    class main
+    disabled
+    oneshot
+	
 service akm8975 /system/bin/akmd8975
     class main
     disabled
     oneshot
-
-service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
-    class late_start
-    user root
-    group root
-    oneshot
-    disabled
+	
+service rmt_storage /system/bin/rmt_storage
+    class core
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class main
@@ -465,36 +421,15 @@ service rmt_oeminfo /system/bin/rmt_oeminfo
     oneshot
 
 on property:ro.emmc=1
-    start rmt_oeminfo
     start rmt_storage
-	
+    start rmt_oeminfo
+
 service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
     class main
     user root
     group root
     oneshot
     disabled
-
-service ftp /system/bin/sdptool add --psm=5257 --channel=20 FTP
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
-
-service map0 /system/bin/sdptool add --channel=16 MAS0
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
-
-service map1 /system/bin/sdptool add --channel=17 MAS1
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
 
 service ril-daemon /system/bin/rild
     class main
@@ -510,11 +445,6 @@ service abtfilt /system/bin/abtfilt -a -d -z -n -q -v -s -w eth0
     class late_start
     user root
     group bluetooth net_bt_admin inet net_admin net_raw
-    disabled
-    oneshot
-    
-service akm8963 /system/bin/akmd8963
-    class main
     disabled
     oneshot
 
@@ -539,11 +469,11 @@ service pppd-gprs /system/bin/pppd call gprs
     oneshot
     disabled
 
-#start camera server as daemon
+# Start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
-        class late_start
-        user media
-        group system camera inet audio
+   class late_start
+   user media
+   group system camera inet audio
 
 service thermald /system/bin/thermald
    class late_start
@@ -551,21 +481,10 @@ service thermald /system/bin/thermald
    group root
    disabled
 
-service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
-    class late_start
-	user root
-	disabled
-
 on property:sys.radio.shutdown=true
    exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
 service gpu_dcvsd /system/bin/gpu_dcvsd
     class late_start
     user root
-    oneshot
-    
-service wlan_detect /system/bin/wlan_detect
-    class main
-    user root
-    group root
     oneshot
