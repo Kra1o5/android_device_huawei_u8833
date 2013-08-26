@@ -10,6 +10,10 @@ $(call inherit-product, device/huawei/u8833/u8833.mk)
 # Correct boot animation size for the screen.
 TARGET_BOOTANIMATION_NAME := vertical-480x800
 
+# To avoid misunderstandings
+CM_BUILDTYPE := EXPERIMENTAL
+CM_EXTRAVERSION := R4
+
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := u8833
 PRODUCT_NAME := cm_u8833

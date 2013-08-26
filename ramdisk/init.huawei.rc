@@ -3,15 +3,17 @@ import init.huawei.usb.rc
 on early-boot
     start qcamerasvr
     start gpu_dcvsd
+    # set RLIMIT_MEMLOCK to 64MB
+    setrlimit 8 67108864 67108864
 
 on init
     mkdir /cust
     mkdir /storage 0050 system sdcard_r
-	mkdir /storage/sdcard1 0000 system system
+    mkdir /storage/sdcard1 0000 system system
     mkdir /storage/sdcard0 0000 system system
 
     # For backwards compatibility
-	symlink /storage/sdcard1 /mnt/sdcard
+    symlink /storage/sdcard1 /mnt/sdcard
     symlink /storage/sdcard1 /sdcard
     symlink /storage/sdcard0 /mnt/internal_sd
     symlink /storage/sdcard0 /internal_sd
@@ -50,8 +52,64 @@ on boot
     mkdir /dev/socket/qmux_gps 0770 gps gps
     chmod 2770 /dev/socket/qmux_gps
 
+    # Configure and enable KSM
+    write /sys/kernel/mm/ksm/pages_to_scan 600
+    write /sys/kernel/mm/ksm/sleep_millisecs 3000
+    write /sys/kernel/mm/ksm/run 1
+	
     # Allow QMUX daemon to assign port open wait time
     chown radio radio /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
+
+
+   # Memory management.  Basic kernel parameters, and allow the high
+   # level system server to be able to adjust the kernel OOM driver
+   # parameters to match how it is managing things.
+    write /proc/sys/vm/overcommit_memory 1
+    write /proc/sys/vm/min_free_order_shift 4
+    chown root system /sys/module/lowmemorykiller/parameters/adj
+    chmod 0664 /sys/module/lowmemorykiller/parameters/adj
+    chown root system /sys/module/lowmemorykiller/parameters/minfree
+    chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
+
+    # Tweak background writeout
+    write /proc/sys/vm/dirty_expire_centisecs 200
+    write /proc/sys/vm/dirty_background_ratio  5
+
+    # Permissions for System Server and daemons.
+    chown radio system /sys/android_power/state
+    chown radio system /sys/android_power/request_state
+    chown radio system /sys/android_power/acquire_full_wake_lock
+    chown radio system /sys/android_power/acquire_partial_wake_lock
+    chown radio system /sys/android_power/release_wake_lock
+    chown system system /sys/power/state
+    chown system system /sys/power/autosleep
+    chown system system /sys/power/wakeup_count
+    chown radio system /sys/power/wake_lock
+    chown radio system /sys/power/wake_unlock
+    chmod 0660 /sys/power/state
+    chmod 0660 /sys/power/wake_lock
+    chmod 0660 /sys/power/wake_unlock
+
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/timer_rate
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/timer_rate
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/min_sample_time
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/boost
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/boost
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/boostpulse
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/input_boost
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/input_boost
+
+    # Assume SMP uses shared cpufreq policy for all CPUs
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
     setprop wifi.interface eth0
 
@@ -171,8 +229,6 @@ on emmc-fs
     # Mount mmc partitions
     mount_all /fstab.huawei
 
-	write /sys/module/block2mtd/parameters/block2mtd /dev/block/mmcblk0p14
-
 on post-fs
     copy /proc/modem_panic /data/dontpanic/modem_panic
     chown root log /data/dontpanic/modem_panic
@@ -186,6 +242,7 @@ service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
 
 # Msm specific files that need to be created on /data
 on post-fs-data
+    exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
 
     chmod 0666 /sys/class/rfkill/rfkill0/state
@@ -234,6 +291,16 @@ on post-fs-data
 
     # Create directory used by audio subsystem
     mkdir /data/misc/audio 0770 audio audio
+
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    class late_start 
+    user root
+    disabled
+
+service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
+    user system
+    group system
+    disabled
 
     # Mounting of persist is moved to 'on emmc-fs' and 'on fs' sections
     # We chown/chmod /persist again so because mount is run as root + defaults
@@ -292,7 +359,7 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
-	start qmuxd
+    start qmuxd
     start netmgrd
     start ril-qmi
 
@@ -334,7 +401,7 @@ service atserver /system/bin/atserver
 service qmuxd /system/bin/qmuxd
     class main
     user radio
-    group radio
+    group radio audio bluetooth gps qcom_diag
 
 
 service netmgrd /system/bin/netmgrd
@@ -371,8 +438,7 @@ service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
     oneshot
 
 service oem_rpc_svc /system/bin/oem_rpc_svc
-    class main
-    oneshot
+    class core
 
 on property:crypto.driver.load=1
      insmod /system/lib/modules/qce.ko
@@ -412,7 +478,7 @@ service akm8975 /system/bin/akmd8975
     disabled
     oneshot
 	
-service rmt_storage /system/bin/rmt_storage
+service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p9 /dev/block/mmcblk0p10 /dev/block/mmcblk0p14
     class core
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
@@ -438,9 +504,6 @@ service ril-daemon /system/bin/rild
     user root
     group radio cache inet misc audio sdcard_rw qcom_oncrpc diag qcom_diag log
 
-service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
-    disabled
-
 service abtfilt /system/bin/abtfilt -a -d -z -n -q -v -s -w eth0
     class late_start
     user root
@@ -461,6 +524,11 @@ service gps_check /system/bin/gps_check
     user root
     group root
     oneshot
+
+service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
+    user system
+    group system
+    disabled
     
 service pppd-gprs /system/bin/pppd call gprs 
     class main
@@ -475,11 +543,19 @@ service qcamerasvr /system/bin/mm-qcamera-daemon
    user media
    group system camera inet audio
 
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    class late_start 
+    user root
+    disabled
+
 service thermald /system/bin/thermald
-   class late_start
-   user root
-   group root
-   disabled
+    class late_start
+    user root
+    group root
+    disabled
+
+on property:persist.thermal.monitor=true
+    start thermald
 
 on property:sys.radio.shutdown=true
    exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh

@@ -54,12 +54,14 @@ com.qc.hardware=true
 dev.pm.dyn_samplingrate=1
 dev.pm.dyn_sample_period=700000
 ro.vendor.extension_library=/system/lib/libqc-opt.so
+persist.thermal.monitor=true
 
 # Telephony
 rild.libargs=-d /dev/smd0
 rild.libpath=/system/lib/libril-qc-1.so
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false
+ro.telephony.ril_class=HuaweiQualcommRIL
 ro.telephony.ril.v3=qcomdsds
 ro.use_data_netmgrd=true
 ro.multi.rild=false

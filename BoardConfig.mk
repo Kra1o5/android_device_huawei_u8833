@@ -97,6 +97,9 @@ TARGET_PROVIDES_LIBAUDIO := true
 # Lights
 TARGET_PROVIDES_LIBLIGHTS := true
 
+# RIL
+BOARD_RIL_CLASS := ../../../device/huawei/u8833/ril/
+
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
