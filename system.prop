@@ -63,7 +63,6 @@ ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false
 ro.telephony.ril_class=HuaweiQualcommRIL
 ro.telephony.ril.v3=qcomdsds
-ro.use_data_netmgrd=true
 ro.multi.rild=false
 
 # USB

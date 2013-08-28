@@ -1,12 +1,8 @@
 import init.huawei.usb.rc
 
-on early-boot
-    start qcamerasvr
-    start gpu_dcvsd
-    # set RLIMIT_MEMLOCK to 64MB
-    setrlimit 8 67108864 67108864
+on early-init
+    mount debugfs debugfs /sys/kernel/debug
 
-on init
     mkdir /cust
     mkdir /storage 0050 system sdcard_r
     mkdir /storage/sdcard1 0000 system system
@@ -25,7 +21,16 @@ on init
     mkdir /dev/bus 0755 root root
     mkdir /dev/bus/usb 0755 root root
 
-on boot
+on emmc-fs
+    # Mount mmc partitions
+    mount_all /fstab.huawei
+	
+on early-boot
+	# Set RLIMIT_MEMLOCK to 64MB
+    setrlimit 8 67108864 67108864
+
+on post-fs
+    exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
     chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
@@ -42,6 +47,19 @@ on boot
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
 
+    chmod 0664 /dev/light
+    chmod 0664 /dev/proximity
+    chmod 0664 /dev/accel
+    chmod 0664 /dev/compass_aot
+    chmod 0664 /dev/akm8975_dev
+    chmod 0664 /dev/compass_dev
+    chmod 0664 /dev/gyro
+    chmod 0664 /dev/akm8963_dev
+    chown system system /sys/power/autosleep
+    chown radio system /sys/class/leds/ptt_led/brightness
+    chmod 0660 /dev/msm_cad
+    chmod 0755 /proc/cmdline
+	
     # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
@@ -52,28 +70,8 @@ on boot
     mkdir /dev/socket/qmux_gps 0770 gps gps
     chmod 2770 /dev/socket/qmux_gps
 
-    # Configure and enable KSM
-    write /sys/kernel/mm/ksm/pages_to_scan 600
-    write /sys/kernel/mm/ksm/sleep_millisecs 3000
-    write /sys/kernel/mm/ksm/run 1
-
-    # Memory management.  Basic kernel parameters, and allow the high
-    # level system server to be able to adjust the kernel OOM driver
-    # parameters to match how it is managing things.
-    write /proc/sys/vm/overcommit_memory 1
-    write /proc/sys/vm/min_free_order_shift 4
-    chown root system /sys/module/lowmemorykiller/parameters/adj
-    chmod 0664 /sys/module/lowmemorykiller/parameters/adj
-    chown root system /sys/module/lowmemorykiller/parameters/minfree
-    chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
-	
     # Allow QMUX daemon to assign port open wait time
     chown radio radio /sys/devices/virtual/hsicctl/hsicctl0/modem_wait
-
-    setprop wifi.interface eth0
-
-    # Enable Bluetooth 802.11 PAL when Bluetooth is turned on
-    setprop ro.config.bt.amp no
 
     # Port-bridge
     chmod 0660 /dev/smd0
@@ -89,6 +87,7 @@ on boot
     symlink /dev/graphics/fb1 /dev/graphics/hdmi
 
     # Remove write permissions to video related nodes
+    chown system graphics /sys/class/graphics/fb1/hpd
     chmod 0664 /sys/devices/virtual/graphics/fb1/hpd
     chmod 0664 /sys/devices/virtual/graphics/fb1/video_mode
     chmod 0664 /sys/devices/virtual/graphics/fb1/format_3d
@@ -99,6 +98,20 @@ on boot
     # For bridgemgr daemon to inform the USB driver of the correct transport
     chown radio radio /sys/class/android_usb/f_rmnet_smd_sdio/transport
 
+    # Configure and enable KSM
+    write /sys/kernel/mm/ksm/pages_to_scan 600
+    write /sys/kernel/mm/ksm/sleep_millisecs 3000
+    write /sys/kernel/mm/ksm/run 1
+
+    # Memory management.  Basic kernel parameters, and allow the high
+    # level system server to be able to adjust the kernel OOM driver
+    # parameters to match how it is managing things.
+    write /proc/sys/vm/overcommit_memory 1
+    write /proc/sys/vm/min_free_order_shift 4
+    chown root system /sys/module/lowmemorykiller/parameters/adj
+    chmod 0664 /sys/module/lowmemorykiller/parameters/adj
+    chown root system /sys/module/lowmemorykiller/parameters/minfree
+    chmod 0664 /sys/module/lowmemorykiller/parameters/minfree
     # To allow interfaces to get v6 address when tethering is enabled
     write /proc/sys/net/ipv6/conf/rmnet0/accept_ra 2
     write /proc/sys/net/ipv6/conf/rmnet1/accept_ra 2
@@ -118,19 +131,6 @@ on boot
     write /proc/sys/net/ipv6/conf/rmnet_sdio7/accept_ra 2
     setrlimit 7 2048 2048
 
-    chmod 0664 /dev/light
-    chmod 0664 /dev/proximity
-    chmod 0664 /dev/accel
-    chmod 0664 /dev/compass_aot
-    chmod 0664 /dev/akm8975_dev
-    chmod 0664 /dev/compass_dev
-    chmod 0664 /dev/gyro
-    chmod 0664 /dev/akm8963_dev
-    chown system system /sys/power/autosleep
-    chown radio system /sys/class/leds/ptt_led/brightness
-    chmod 0660 /dev/msm_cad
-    chmod 0755 /proc/cmdline
-
     chown system system /sys/kernel/logger/log_main/enable
     chown system system /sys/kernel/logger/log_events/enable
     chown system system /sys/kernel/logger/log_radio/enable
@@ -146,15 +146,6 @@ on boot
     chown system system /sys/devices/platform/msm_hsusb/gadget/sdstatus
     chown system system /sys/devices/platform/msm_hsusb/gadget/switchusb
     chown system system /sys/devices/platform/msm_hsusb/gadget/fixusb
-    
-    setprop net.tcp.buffersize.hsupa   4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.hsdpa   4094,87380,1220608,4096,16384,1220608
-    setprop net.tcp.buffersize.evdo_b  4094,87380,262144,4096,16384,262144
-
-    # Assign TCP buffer thresholds to be ceiling value of technology maximums
-    # Increased technology maximums should be reflected here.
-    write /proc/sys/net/core/rmem_max  3461120
-    write /proc/sys/net/core/wmem_max  3461120
 
     # Tweak background writeout
     write /proc/sys/vm/dirty_expire_centisecs 200
@@ -196,44 +187,6 @@ on boot
     chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
-    # Allow writing to the kernel trace log.
-    chmod 0222 /sys/kernel/debug/tracing/trace_marker
-
-    # Allow the shell group to enable (some) kernel tracing.
-    chown root shell /sys/kernel/debug/tracing/trace_clock
-    chown root shell /sys/kernel/debug/tracing/buffer_size_kb
-    chown root shell /sys/kernel/debug/tracing/options/overwrite
-    chown root shell /sys/kernel/debug/tracing/events/sched/sched_switch/enable
-    chown root shell /sys/kernel/debug/tracing/events/sched/sched_wakeup/enable
-    chown root shell /sys/kernel/debug/tracing/events/power/cpu_frequency/enable
-    chown root shell /sys/kernel/debug/tracing/events/power/cpu_idle/enable
-    chown root shell /sys/kernel/debug/tracing/events/cpufreq_interactive/enable
-    chown root shell /sys/kernel/debug/tracing/tracing_on
-
-    chmod 0664 /sys/kernel/debug/tracing/trace_clock
-    chmod 0664 /sys/kernel/debug/tracing/buffer_size_kb
-    chmod 0664 /sys/kernel/debug/tracing/options/overwrite
-    chmod 0664 /sys/kernel/debug/tracing/events/sched/sched_switch/enable
-    chmod 0664 /sys/kernel/debug/tracing/events/sched/sched_wakeup/enable
-    chmod 0664 /sys/kernel/debug/tracing/events/power/cpu_frequency/enable
-    chmod 0664 /sys/kernel/debug/tracing/events/power/cpu_idle/enable
-    chmod 0664 /sys/kernel/debug/tracing/events/cpufreq_interactive/enable
-    chmod 0664 /sys/kernel/debug/tracing/tracing_on
-
-# Allow only the shell group to read and truncate the kernel trace.
-    chown root shell /sys/kernel/debug/tracing/trace
-    chmod 0660 /sys/kernel/debug/tracing/trace
-
-on emmc-fs
-    # Mount mmc partitions
-    mount_all /fstab.huawei
-
-on post-fs
-    copy /proc/modem_panic /data/dontpanic/modem_panic
-    chown root log /data/dontpanic/modem_panic
-    chmod 0640 /data/dontpanic/modem_panic
-    export_rc /persist/init.cne.rc
-
 service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
     class main
     user root
@@ -241,7 +194,6 @@ service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
 
 # Msm specific files that need to be created on /data
 on post-fs-data
-    exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
 
     chmod 0666 /sys/class/rfkill/rfkill0/state
@@ -306,6 +258,7 @@ on post-fs-data
     chown system system /sys/devices/platform/msm_sdcc.3/polling
     chown system system /sys/devices/platform/msm_sdcc.4/polling
 
+    mkdir /data/system 0775 system system
     # Create directories for wiper services
     mkdir /data/wpstiles/ 0755 shell
     mkdir /data/wiper 0755 gps qcom_oncrpc
@@ -325,11 +278,13 @@ on post-fs-data
     chown system system /sys/devices/platform/mmi_key_dev/keytest
 
     # Create directories for gpsone_daemon services
-    mkdir /data/misc/gpsone_d 0770 system gps
+    mkdir /data/misc/gpsone_d 0770 system system
 
     # Create directories for QuIPS
     mkdir /data/misc/quipc 0770 gps system
     # Create directories for Location services
+    mkdir /data/misc/location 0770 gps gps
+    mkdir /data/misc/location/mq 0770 gps gps
     mkdir /data/misc/location/xtwifi 0770 gps gps
 
     # Create directory from IMS services
@@ -348,10 +303,6 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
-    start qmuxd
-    start netmgrd
-    start ril-qmi
-
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
@@ -360,45 +311,23 @@ on property:bluetooth.isEnabled=true
     write /sys/class/bluetooth/hci0/idle_timeout 7000
 
 on property:bluetooth.isEnabled=false
-    start amp_unload
-  
-on property:vold.decrypt=trigger_restart_framework
-    start qcom-c_main-sh
-
-service bridgemgrd /system/bin/bridgemgrd
+    stop abtfilt
+	
+service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p9 /dev/block/mmcblk0p10 /dev/block/mmcblk0p14
     class main
-    user radio
-    group radio
-    disabled
-
-service port-bridge /system/bin/port-bridge /dev/smd0 /dev/ttyGS0
-    class main
-    user system
-    group system inet
-    disabled
-
-service qmiproxy /system/bin/qmiproxy
-    class main
-    user radio
-    group radio
-    disabled
-
-service atserver /system/bin/atserver
-    class core
-    oneshot
+	user root
+	disabled
 
 service qmuxd /system/bin/qmuxd
     class main
     user radio
     group radio audio bluetooth gps qcom_diag
-
-
+	
 service netmgrd /system/bin/netmgrd
     class main
-
-on property:ro.use_data_netmgrd=false
-    # Netmgrd not supported on specific target
-    stop netmgrd
+	
+on property:sys.radio.shutdown=true
+   exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -ieth0 -puse_p2p_group_interface=1 -W -c/data/misc/wifi/wpa_supplicant.conf
     class main
@@ -425,29 +354,10 @@ service iprenew_p2p /system/bin/dhcpcd -n p2p
 service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
     disabled
     oneshot
-
+	 
 service oem_rpc_svc /system/bin/oem_rpc_svc
-    class core
-
-on property:crypto.driver.load=1
-     insmod /system/lib/modules/qce.ko
-     insmod /system/lib/modules/qcedev.ko
-
-on property:crypto.driver.load=0
-     exec /system/bin/rmmod qcedev.ko
-     exec /system/bin/rmmod qce.ko
-
-service drmdiag /system/bin/drmdiagapp
-    class late_start
-     user root
-     disabled
-     oneshot
-
-on property:drmdiag.load=1
-    start drmdiag
-
-on property:drmdiag.load=0
-    stop drmdiag
+    class main
+	oneshot
 
 service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
     disabled
@@ -466,18 +376,15 @@ service akm8975 /system/bin/akmd8975
     class main
     disabled
     oneshot
-	
-service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p9 /dev/block/mmcblk0p10 /dev/block/mmcblk0p14
-    class core
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class main
     user root
     oneshot
 
-on property:ro.emmc=1
-    start rmt_storage
+on property:ro.boot.emmc=true
     start rmt_oeminfo
+    start rmt_storage
 
 service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
     class main
@@ -485,13 +392,6 @@ service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
     group root
     oneshot
     disabled
-
-service ril-daemon /system/bin/rild
-    class main
-    socket rild stream 660 root radio
-    socket rild-debug stream 660 radio system
-    user root
-    group radio cache inet misc audio sdcard_rw qcom_oncrpc diag qcom_diag log
 
 service abtfilt /system/bin/abtfilt -a -d -z -n -q -v -s -w eth0
     class late_start
@@ -545,9 +445,6 @@ service thermald /system/bin/thermald
 
 on property:persist.thermal.monitor=true
     start thermald
-
-on property:sys.radio.shutdown=true
-   exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
 service gpu_dcvsd /system/bin/gpu_dcvsd
     class late_start
