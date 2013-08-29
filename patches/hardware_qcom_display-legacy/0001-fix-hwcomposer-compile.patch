@@ -1,0 +1,24 @@
+From b48efe193024fb3232b69150e04d59be0565056a Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Wed, 28 Aug 2013 18:17:12 +0200
+Subject: [PATCH] fix-hwcomposer-compile
+
+---
+ libhwcomposer/hwc_utils.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/libhwcomposer/hwc_utils.h b/libhwcomposer/hwc_utils.h
+index e5a42c1..d2dda9f 100644
+--- a/libhwcomposer/hwc_utils.h
++++ b/libhwcomposer/hwc_utils.h
+@@ -26,6 +26,7 @@
+ #define LIKELY( exp )       (__builtin_expect( (exp) != 0, true  ))
+ #define UNLIKELY( exp )     (__builtin_expect( (exp) != 0, false ))
+ #define MAX_NUM_DISPLAYS 4
++#define HWC_BLIT 4
+ 
+ //Fwrd decls
+ struct hwc_context_t;
+-- 
+1.8.3.msysgit.0
+
