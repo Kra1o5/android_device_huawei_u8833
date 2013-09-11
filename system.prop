@@ -1,0 +1,69 @@
+#
+# system.prop for u8833
+#
+
+# Camcorder
+debug.camcorder.disablemeta=1
+
+# CWM
+ro.cwm.enable_key_repeat=true
+
+# Dalvik
+dalvik.vm.heapstartsize=5m
+dalvik.vm.heapgrowthlimit=48m
+dalvik.vm.heapsize=128m
+
+# Display
+debug.sf.hw=1
+debug.hwc.dynThreshold=1.91
+debug.sf.swaprect=1
+debug.composition.type=mdp
+ro.max.fling_velocity=4000
+ro.opengles.version=131072
+ro.sf.lcd_density=240
+
+# Huawei
+ro.confg.hw_appfsversion=u8833VCM10_SYSIMG
+ro.confg.hw_appsbootversion=u8833VCM10_APPSBOOT
+ro.confg.hw_appversion=u8833VCM10_KERNEL
+
+# Media
+media.stagefright.enable-player=true
+media.stagefright.enable-meta=false
+media.stagefright.enable-scan=true
+media.stagefright.enable-http=true
+media.stagefright.enable-fma2dp=true
+media.stagefright.enable-aac=true
+media.stagefright.enable-qcp=true
+
+# Memory
+ro.zram.default=0
+persist.sys.purgeable_assets=1
+sys.mem.max_hidden_apps=10
+
+# Qualcomm
+com.qc.hardware=true
+dev.pm.dyn_samplingrate=1
+dev.pm.dyn_sample_period=700000
+ro.vendor.extension_library=/system/lib/libqc-opt.so
+persist.thermal.monitor=true
+
+# Telephony
+rild.libargs=-d /dev/smd0
+rild.libpath=/system/lib/libril-qc-1.so
+ril.subscription.types=NV,RUIM
+ro.telephony.call_ring.multiple=false
+ro.telephony.ril_class=HuaweiQualcommRIL
+ro.telephony.ril.v3=qcomdsds
+ro.multi.rild=false
+
+# USB
+persist.sys.usb.config=mtp,adb
+ro.additionalmounts=/storage/sdcard0
+ro.emmc.sdcard.partition=19
+ro.vold.switchablepair=/storage/sdcard1,/storage/sdcard0
+ro.vold.umsdirtyratio=50
+
+# Wi-Fi
+wifi.interface=eth0
+wifi.supplicant_scan_interval=60
