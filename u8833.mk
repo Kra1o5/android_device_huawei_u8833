@@ -41,6 +41,14 @@ PRODUCT_PACKAGES += \
     libOmxCore \
     libstagefrighthw 
 
+
+# Graphics
+PRODUCT_PACKAGES += \
+    copybit.msm7x27a \
+    gralloc.msm7x27a \
+    hwcomposer.msm7x27a \
+    libgenlock
+
 # Audio
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
