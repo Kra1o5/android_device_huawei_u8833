@@ -49,7 +49,7 @@ TARGET_SPECIFIC_HEADER_PATH := device/huawei/u8833/include
 # Graphics
 BOARD_EGL_CFG := device/huawei/u8833/prebuilt/system/lib/egl/egl.cfg
 USE_OPENGL_RENDERER := true
-TARGET_USES_OVERLAY := false
+TARGET_USES_OVERLAY := true
 TARGET_USES_GENLOCK := true
 TARGET_USES_ION := true
 BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
@@ -67,7 +67,7 @@ BOARD_WLAN_DEVICE                := ath6kl
 BOARD_WPA_SUPPLICANT_DRIVER      := NL80211
 BOARD_HOSTAPD_DRIVER             := NL80211
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
-WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/ar6000.ko"
+WIFI_DRIVER_MODULE_PATH          := "/data/misc/wifi/load/ar6000.ko"
 WIFI_DRIVER_MODULE_NAME          := "ar6000"
 WIFI_EXT_MODULE_PATH             := "/system/lib/modules/cfg80211.ko"
 WIFI_EXT_MODULE_NAME             := "cfg80211"
@@ -75,6 +75,7 @@ WIFI_TEST_INTERFACE              := "sta"
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
+BOARD_HAVE_HUAWEI_AR6k := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true

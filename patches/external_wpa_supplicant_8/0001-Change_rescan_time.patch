@@ -1,0 +1,25 @@
+From 4f66d36c567bdbd25d21852c50f265966f2c210e Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Tue, 17 Sep 2013 14:01:34 +0200
+Subject: [PATCH] Change_rescan_time
+
+---
+ src/drivers/driver_wext.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/drivers/driver_wext.c b/src/drivers/driver_wext.c
+index 7096809..ee7ee36 100644
+--- a/src/drivers/driver_wext.c
++++ b/src/drivers/driver_wext.c
+@@ -1051,7 +1051,7 @@ scan_out:
+ 		 * when scan is complete, so use longer timeout to avoid race
+ 		 * conditions with scanning and following association request.
+ 		 */
+-		timeout = 30;
++		timeout = 5;
+ 	}
+ 	wpa_printf(MSG_DEBUG, "Scan requested (ret=%d) - scan timeout %d "
+ 		   "seconds", ret, timeout);
+-- 
+1.8.1.2
+

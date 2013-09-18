@@ -1,0 +1,25 @@
+From 911ac8b119fb0d26b0317594dfda132f177d930b Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Tue, 17 Sep 2013 14:04:30 +0200
+Subject: [PATCH] Switch_to_eth0
+
+---
+ wifi/wifi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wifi/wifi.c b/wifi/wifi.c
+index 656659f..3df39c9 100644
+--- a/wifi/wifi.c
++++ b/wifi/wifi.c
+@@ -626,7 +626,7 @@ int wifi_start_supplicant(int p2p_supported)
+     /* The ar6k driver needs the interface up in order to scan! */
+     if (!strncmp(DRIVER_MODULE_NAME, "ar6000", 6)) {
+         ifc_init();
+-        ifc_up("wlan0");
++        ifc_up("eth0");
+         sleep(2);
+     }
+ #endif
+-- 
+1.8.1.2
+
