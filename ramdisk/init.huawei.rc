@@ -378,7 +378,13 @@ service netmgrd /system/bin/netmgrd
 on property:sys.radio.shutdown=true
    exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
-service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
+service dhcpcd_bt-pan /system/bin/dhcpcd -BKLG
+    class late_start 
+    disabled
+    oneshot
+ 
+service iprenew_bt-pan /system/bin/dhcpcd -n
+    class late_start
     disabled
     oneshot
 	 
@@ -388,7 +394,6 @@ service oem_rpc_svc /system/bin/oem_rpc_svc
 
 service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
     disabled
-
 
 service compassd /system/bin/compassd
     class main
@@ -404,6 +409,15 @@ service akm8975 /system/bin/akmd8975
     class main
     disabled
     oneshot
+	
+service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
+    class main
+    user root
+    disabled
+    oneshot
+    
+on property:sys.boot_completed=1
+    start qcom-post-boot
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class core
