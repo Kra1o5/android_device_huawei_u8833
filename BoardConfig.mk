@@ -83,14 +83,13 @@ BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_ath6kl
 BOARD_HOSTAPD_DRIVER             := NL80211
 BOARD_HOSTAPD_PRIVATE_LIB        := lib_driver_cmd_ath6kl
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
-WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/ar6000.ko"
+WIFI_DRIVER_MODULE_PATH          := "/data/misc/wifi/load/ar6000.ko"
 WIFI_DRIVER_MODULE_NAME          := "ar6000"
-WIFI_EXT_MODULE_PATH             := "/system/lib/modules/cfg80211.ko"
-WIFI_EXT_MODULE_NAME             := "cfg80211"
 WIFI_TEST_INTERFACE              := "sta"
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
+BOARD_HAVE_HUAWEI_AR6k := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true
@@ -103,9 +102,7 @@ BOARD_RIL_CLASS := ../../../device/huawei/u8833/ril/
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_QCOM := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/huawei/u8833/bluetooth
-BOARD_BLUEDROID_VENDOR_CONF := device/huawei/u8833/bluetooth/vnd_u8833.txt
 
 # Camera
 USE_CAMERA_STUB := false
@@ -164,4 +161,4 @@ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 314572800
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 183500800
 BOARD_FLASH_BLOCK_SIZE := 131072
 
-TARGET_OTA_ASSERT_DEVICE := u8833,u8951,hwY300-0100,hwG510-0100,hwG510-0200,msm7627a,msm7x27a
+TARGET_OTA_ASSERT_DEVICE := u8833,u8951,hwY300-0100,hwY300-0151,hwG510-0100,hwG510-0151,hwG510-0200,msm7627a,msm7x27a

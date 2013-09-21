@@ -3,10 +3,7 @@
 #
 
 # Bluetooth
-ro.bluetooth.remote.autoconnect=true
-ro.bluetooth.request.master=true
-ro.qualcomm.bluetooth.dun=true
-ro.qualcomm.bluetooth.ftp=true
+ro.bt.bdaddr_path=/data/misc/bluedroid/bdaddr
 
 # Camcorder
 debug.camcorder.disablemeta=1
@@ -23,6 +20,7 @@ dalvik.vm.heapminfree=512k
 dalvik.vm.heapmaxfree=2m 
 
 # Display
+debug.sf.hw=1
 debug.hwc.dynThreshold=1.91
 debug.sf.swaprect=1
 debug.composition.type=mdp

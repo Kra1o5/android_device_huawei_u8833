@@ -37,16 +37,14 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 PRODUCT_PACKAGES += \
     libstagefrighthw \
     libmm-omxcore \
-    libOmxCore \
-    libOmxVdec \
-    libOmxVenc
+    libOmxCore
 
 # Graphics
 PRODUCT_PACKAGES += \
     copybit.msm7x27a \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
-	libgenlock \
+    libgenlock \
     libtilerenderer
 
 # Audio
@@ -56,6 +54,10 @@ PRODUCT_PACKAGES += \
     audio_policy.u8833 \
     audio.usb.default \
     libaudioutils
+	
+# Bluetooth
+PRODUCT_PACKAGES += \
+    btmac
 
 # GPS
 PRODUCT_PACKAGES += \
@@ -68,6 +70,7 @@ PRODUCT_PACKAGES += \
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
+    LiveWallpapers \
     LiveWallpapersPicker \
     librs_jni	
 	
@@ -85,7 +88,9 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8833/ramdisk/fstab.huawei:root/fstab.huawei \
     device/huawei/u8833/ramdisk/ueventd.huawei.rc:root/ueventd.huawei.rc \
 	device/huawei/u8833/ramdisk/init.qcom.ril.path.sh:root/init.qcom.ril.path.sh \
-    device/huawei/u8833/ramdisk/tp/1191601.img:root/tp/1191601.img
+    device/huawei/u8833/ramdisk/tp/1191601.img:root/tp/1191601.img \
+    device/huawei/u8833/ramdisk/wifi/ar6000.ko:root/wifi/ar6000.ko \
+    device/huawei/u8833/ramdisk/wifi/cfg80211.ko:root/wifi/cfg80211.ko
 	
 PRODUCT_COPY_FILES += \
   $(call find-copy-subdir-files,*,device/huawei/u8833/prebuilt/system,system)
@@ -113,7 +118,9 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
+    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
 
+	
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 $(call inherit-product, build/target/product/full.mk)

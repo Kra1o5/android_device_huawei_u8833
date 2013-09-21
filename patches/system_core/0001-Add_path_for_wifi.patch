@@ -1,0 +1,63 @@
+From b4f27a10b7ba65a3cfc98a7b375b8b656c605060 Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Fri, 20 Sep 2013 10:41:48 +0200
+Subject: [PATCH] Add_path_for_wifi
+
+---
+ init/devices.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/init/devices.c b/init/devices.c
+index ac54ced..a839763 100644
+--- a/init/devices.c
++++ b/init/devices.c
+@@ -51,7 +51,8 @@
+ #define SYSFS_PREFIX    "/sys"
+ #define FIRMWARE_DIR1   "/etc/firmware"
+ #define FIRMWARE_DIR2   "/vendor/firmware"
+-#define FIRMWARE_DIR3   "/firmware/image"
++#define FIRMWARE_DIR3   "/system/wifi"
++#define FIRMWARE_DIR4   "/data/misc/wifi"
+ 
+ #ifdef HAVE_SELINUX
+ extern struct selabel_handle *sehandle;
+@@ -709,7 +710,7 @@ static int is_booting(void)
+ 
+ static void process_firmware_event(struct uevent *uevent)
+ {
+-    char *root, *loading, *data, *file1 = NULL, *file2 = NULL, *file3 = NULL;
++    char *root, *loading, *data, *file1 = NULL, *file2 = NULL, *file3 = NULL, *file4 = NULL;
+     int l, loading_fd, data_fd, fw_fd;
+     int booting = is_booting();
+ 
+@@ -740,6 +741,10 @@ static void process_firmware_event(struct uevent *uevent)
+     if (l == -1)
+         goto data_free_out;
+ 
++    l = asprintf(&file4, FIRMWARE_DIR4"/%s", uevent->firmware);
++    if (l == -1)
++        goto data_free_out;
++
+     loading_fd = open(loading, O_WRONLY);
+     if(loading_fd < 0)
+         goto file_free_out;
+@@ -755,6 +760,8 @@ try_loading_again:
+         if (fw_fd < 0) {
+             fw_fd = open(file3, O_RDONLY);
+             if (fw_fd < 0) {
++                fw_fd = open(file4, O_RDONLY);
++                if (fw_fd < 0) {
+                 if (booting) {
+                         /* If we're not fully booted, we may be missing
+                          * filesystems needed for firmware, wait and retry.
+@@ -769,6 +776,7 @@ try_loading_again:
+             }
+         }
+     }
++}
+ 
+     if(!load_firmware(fw_fd, loading_fd, data_fd))
+         INFO("firmware: copy success { '%s', '%s' }\n", root, uevent->firmware);
+-- 
+1.8.1.2
+
