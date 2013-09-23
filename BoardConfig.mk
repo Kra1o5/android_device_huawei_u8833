@@ -33,6 +33,7 @@ TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a5 -mfpu=neon -mfloat-abi=softfp
 
 TARGET_CORTEX_CACHE_LINE_32 := true
 TARGET_USE_SPARROW_BIONIC_OPTIMIZATION := true
+ARCH_ARM_HAVE_32_BYTE_CACHE_LINES := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
 # Kernel 
@@ -41,7 +42,7 @@ TARGET_KERNEL_CONFIG := cm_msm8x25_defconfig
 TARGET_BOOTLOADER_BOARD_NAME := u8833
 BOARD_KERNEL_CMDLINE := androidboot.hardware=huawei
 BOARD_KERNEL_BASE := 0x00200000
-BOARD_PAGE_SIZE := 4096
+BOARD_PAGE_SIZE := 2048
 TARGET_USERIMAGES_USE_EXT4 := true
 
 TARGET_SPECIFIC_HEADER_PATH := device/huawei/u8833/include
@@ -49,8 +50,6 @@ TARGET_SPECIFIC_HEADER_PATH := device/huawei/u8833/include
 # Graphics
 BOARD_EGL_CFG := device/huawei/u8833/prebuilt/system/lib/egl/egl.cfg
 USE_OPENGL_RENDERER := true
-TARGET_USES_OVERLAY := true
-TARGET_USES_GENLOCK := true
 TARGET_USES_ION := true
 BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
 
@@ -73,7 +72,6 @@ WIFI_TEST_INTERFACE              := "sta"
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
-BOARD_HAVE_HUAWEI_AR6k := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true

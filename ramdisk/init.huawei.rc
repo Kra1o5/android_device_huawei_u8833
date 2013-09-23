@@ -24,9 +24,9 @@ on early-init
 on emmc-fs
     # Mount mmc partitions
     mount_all /fstab.huawei
-	
+
 on early-boot
-	# Set RLIMIT_MEMLOCK to 64MB
+    # Set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
 
 on post-fs
@@ -60,7 +60,7 @@ on post-fs
     chown radio system /sys/class/leds/ptt_led/brightness
     chmod 0660 /dev/msm_cad
     chmod 0755 /proc/cmdline
-	
+
     # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
@@ -314,6 +314,11 @@ service wlan_detect /system/bin/wlan_detect
     group root
     oneshot
 
+service bridgemgrd /system/bin/bridgemgrd
+    class main
+    user radio
+    group radio
+
 service p2p_supplicant /system/bin/wpa_supplicant -Dnl80211 -ieth0 -e/data/misc/wifi/entropy.bin -puse_p2p_group_interface=1 -W -c/data/misc/wifi/wpa_supplicant.conf
     class main
     group wifi inet
@@ -371,10 +376,10 @@ service qmuxd /system/bin/qmuxd
     class main
     user radio
     group radio audio bluetooth gps qcom_diag
-	
+
 service netmgrd /system/bin/netmgrd
     class main
-	
+
 on property:sys.radio.shutdown=true
    exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
@@ -387,7 +392,7 @@ service iprenew_bt-pan /system/bin/dhcpcd -n
     class late_start
     disabled
     oneshot
-	 
+
 service oem_rpc_svc /system/bin/oem_rpc_svc
     class main
     oneshot
@@ -399,17 +404,17 @@ service compassd /system/bin/compassd
     class main
     disabled
     oneshot
-	    
+
 service akm8963 /system/bin/akmd8963
     class main
     disabled
     oneshot
-	
+
 service akm8975 /system/bin/akmd8975
     class main
     disabled
     oneshot
-	
+
 service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
     class main
     user root

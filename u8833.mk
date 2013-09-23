@@ -48,7 +48,7 @@ PRODUCT_PACKAGES += \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
     libgenlock \
-	libtilerenderer
+    libtilerenderer
 
 # Audio
 PRODUCT_PACKAGES += \
