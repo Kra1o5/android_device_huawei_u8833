@@ -26,7 +26,7 @@ on emmc-fs
     mount_all /fstab.huawei
 	
 on early-boot
-	# Set RLIMIT_MEMLOCK to 64MB
+    # Set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
 
 on post-fs
@@ -47,6 +47,8 @@ on post-fs
     chmod 0660 /dev/ttyHS0
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
+    chown bluetooth bluetooth ro.bt.bdaddr_path
+    setprop ro.bt.bdaddr_path "/data/misc/bluedroid/bdaddr"
 
     chmod 0664 /dev/light
     chmod 0664 /dev/proximity
@@ -198,22 +200,6 @@ on post-fs-data
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
 
 # Create  WIFI filesystem structure
-    mkdir /data/misc
-    chmod 01771 /data/misc/
-    chown system misc /data/misc/
-    mkdir /data/misc/wifi
-    chmod 0770 /data/misc/wifi
-    chown wifi wifi /data/misc/wifi/
-    mkdir /data/misc/wifi/sockets 0775 wifi wifi
-    mkdir /data/misc/wpa_supplicant 0775 wifi wifi
-    mkdir /data/misc/dhcp 0775 dhcp dhcp
-
-    mkdir /data/misc/wifi/load
-    chmod 0775 /data/misc/wifi/load
-    chown system system /data/misc/wifi/load/
-    mkdir /data/misc/wifi/bin 0775 system system
-
-    # Create the directories used by the Wireless subsystem
     mkdir /data/misc/wifi 0770 wifi wifi
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
     mkdir /data/misc/wifi/wpa_supplicant 0770 wifi wifi
@@ -222,6 +208,10 @@ on post-fs-data
     chmod 0660 /data/misc/wifi/wpa_supplicant.conf
     chmod 0660 /data/misc/wifi/hostapd.conf
     chmod 0660 /data/hostapd/hostapd.conf
+    mkdir /data/misc/wifi/load
+    chmod 0775 /data/misc/wifi/load
+    chown system system /data/misc/wifi/load/
+    mkdir /data/misc/wifi/bin 0775 system system
 
     chmod 0660 /dev/assd
     chown smartcard smartcard /dev/assd
@@ -301,6 +291,11 @@ service wlan_detect /system/bin/wlan_detect
     user root
     group root
     oneshot
+
+service bridgemgrd /system/bin/bridgemgrd
+    class main
+    user radio
+    group radio
 
 service p2p_supplicant /system/bin/wpa_supplicant -Dnl80211 -ieth0 -e/data/misc/wifi/entropy.bin -puse_p2p_group_interface=1 -W -c/data/misc/wifi/wpa_supplicant.conf
     class main

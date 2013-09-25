@@ -872,7 +872,7 @@ index 0000000..d7db7e9
 +    if (argc > 3) {
 +        len = snprintf(buf, sizeof(buf), "ssid=%s\n",argv[3]);
 +    } else {
-+        len = snprintf(buf, sizeof(buf), "ssid=DaytonaAP\n");
++        len = snprintf(buf, sizeof(buf), "ssid=AndroidAP\n");
 +    }
 +    /* set open auth */
 +    write(fd, buf, len);
