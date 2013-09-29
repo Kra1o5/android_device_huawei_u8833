@@ -1,26 +1,26 @@
-From ea248dbd87906d646b29ce0108676123d30e299e Mon Sep 17 00:00:00 2001
+From d8eb8f52e9fef312c33c298926590cb5b26986ab Mon Sep 17 00:00:00 2001
 From: Kra1o5 <kra1o5x@gmail.com>
-Date: Fri, 20 Sep 2013 10:52:21 +0200
+Date: Sun, 29 Sep 2013 18:09:04 +0200
 Subject: [PATCH] Fix_wifi_tethering
 
 ---
- Android.mk              |  11 +-
+ Android.mk              |   8 +
  CommandListener.cpp     |   9 +
  SoftapController.h      |   8 +
  SoftapControllerATH.cpp | 880 ++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 906 insertions(+), 2 deletions(-)
+ 4 files changed, 905 insertions(+)
  create mode 100644 SoftapControllerATH.cpp
 
 diff --git a/Android.mk b/Android.mk
-index 84443d9..9957d3c 100644
+index 84443d9..3ca70a6 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -39,12 +39,19 @@ LOCAL_CFLAGS := -Werror=format
+@@ -39,11 +39,19 @@ LOCAL_CFLAGS := -Werror=format
  
  LOCAL_SHARED_LIBRARIES := libstlport libsysutils libcutils libnetutils \
                            libcrypto libhardware_legacy libmdnssd libdl
-+ifeq ($(BOARD_HAVE_HUAWEI_AR6k),true)
-+  LOCAL_CFLAGS += -DHUAWEI_ATH
++ifeq ($(BOARD_HAVE_HUAWEI_WIFI),true)
++  LOCAL_CFLAGS += -DHUAWEI_WIFI
 +  LOCAL_CFLAGS += -DWIFI_MODULE_PATH=\"$(WIFI_DRIVER_MODULE_PATH)\"
 +  LOCAL_C_INCLUDES += external/wpa_supplicant_8/wpa_supplicant/src/common
 +  LOCAL_SRC_FILES += SoftapControllerATH.cpp
@@ -28,24 +28,22 @@ index 84443d9..9957d3c 100644
 +else
  ifdef USES_TI_MAC80211
    LOCAL_SRC_FILES += SoftapControllerTI.cpp
--else
-+else 
+ else
    LOCAL_SRC_FILES += SoftapController.cpp
  endif
--
 +endif
+ 
  ifneq ($(BOARD_HOSTAPD_DRIVER),)
    LOCAL_CFLAGS += -DHAVE_HOSTAPD
-   ifneq ($(BOARD_HOSTAPD_DRIVER_NAME),)
 diff --git a/CommandListener.cpp b/CommandListener.cpp
-index fdb26dd..9725f66 100644
+index fdb26dd..bed8fc1 100644
 --- a/CommandListener.cpp
 +++ b/CommandListener.cpp
 @@ -839,8 +839,17 @@ int CommandListener::SoftapCmd::runCommand(SocketClient *cli,
          return 0;
      }
  
-+#ifdef HUAWEI_ATH
++#ifdef HUAWEI_WIFI
 +    if (!strcmp(argv[1], "start")) {
 +        rc = sSoftapCtrl->startDriver(argv[2]);
 +    } else if (!strcmp(argv[1], "stop")) {
@@ -60,14 +58,14 @@ index fdb26dd..9725f66 100644
          rc = sSoftapCtrl->stopSoftap();
      } else if (!strcmp(argv[1], "fwreload")) {
 diff --git a/SoftapController.h b/SoftapController.h
-index 57241b9..86ed7c7 100644
+index 57241b9..dc04e79 100644
 --- a/SoftapController.h
 +++ b/SoftapController.h
 @@ -27,6 +27,10 @@
  #define AP_DRIVER_START_DELAY	800000
  
  class SoftapController {
-+#ifdef HUAWEI_ATH
++#ifdef HUAWEI_WIFI
 +    char mBuf[SOFTAP_MAX_BUFFER_SIZE];
 +    char mIface[IFNAMSIZ];
 +#endif
@@ -78,7 +76,7 @@ index 57241b9..86ed7c7 100644
      SoftapController();
      virtual ~SoftapController();
  
-+#ifdef HUAWEI_ATH
++#ifdef HUAWEI_WIFI
 +    int startDriver(char *iface);
 +    int stopDriver(char *iface);
 +#endif
@@ -87,7 +85,7 @@ index 57241b9..86ed7c7 100644
      bool isSoftapStarted();
 diff --git a/SoftapControllerATH.cpp b/SoftapControllerATH.cpp
 new file mode 100644
-index 0000000..d7db7e9
+index 0000000..ad05d42
 --- /dev/null
 +++ b/SoftapControllerATH.cpp
 @@ -0,0 +1,880 @@
@@ -853,7 +851,7 @@ index 0000000..d7db7e9
 +        ALOGE("Cannot create \"%s\": %s", HOSTAPD_CONFIG_FILE, strerror(errno));
 +        return -1;
 +    }
-+    if (chown(HOSTAPD_CONFIG_FILE, AID_SYSTEM, AID_WIFI) < 0) {
++   if (chown(HOSTAPD_CONFIG_FILE, AID_SYSTEM, AID_WIFI) < 0) {
 +        ALOGE("Error changing group ownership of %s to %d: %s",
 +             HOSTAPD_CONFIG_FILE, AID_WIFI, strerror(errno));
 +        return -1;
@@ -863,11 +861,10 @@ index 0000000..d7db7e9
 +             HOSTAPD_CONFIG_FILE, AID_WIFI, strerror(errno));
 +        return -1;
 +    }
++
 +    len = snprintf(buf, sizeof(buf), "interface=eth0\n");
 +    write(fd, buf, len);
-+    //len = snprintf(buf, sizeof(buf), "ctrl_interface=DIR=/data/misc/wifi/hostapd/ GROUP=wifi\n");
-+    len = snprintf(buf, sizeof(buf), "ctrl_interface=%s\n",IFACE_DIR); 
-+	//len = snprintf(buf, sizeof(buf), "ctrl_interface=eth0\n");
++    len = snprintf(buf, sizeof(buf), "ctrl_interface=%s\n",IFACE_DIR);
 +    write(fd, buf, len);
 +    if (argc > 3) {
 +        len = snprintf(buf, sizeof(buf), "ssid=%s\n",argv[3]);
@@ -908,10 +905,10 @@ index 0000000..d7db7e9
 +        len = snprintf(buf, sizeof(buf), "channel=%d\n",WIFI_DEFAULT_CHANNEL);
 +        write(fd, buf, len);
 +    }
-+	    len = snprintf(buf, sizeof(buf), "driver=nl80211\n",argv[7]);
++        len = snprintf(buf, sizeof(buf), "driver=nl80211\n",argv[7]);
 +        write(fd, buf, len);
 +
-+	    len = snprintf(buf, sizeof(buf), "hw_mode=g\n",argv[7]);
++	len = snprintf(buf, sizeof(buf), "hw_mode=g\n",argv[7]);
 +        write(fd, buf, len);
 +
 +    /*if (argc > 7) {
@@ -971,6 +968,7 @@ index 0000000..d7db7e9
 +    // XXX: unimplemented
 +    return -1;
 +}
++
 -- 
 1.8.1.2
 

@@ -89,7 +89,7 @@ WIFI_TEST_INTERFACE              := "sta"
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
-BOARD_HAVE_HUAWEI_AR6k := true
+BOARD_HAVE_HUAWEI_WIFI := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true
