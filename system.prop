@@ -67,4 +67,4 @@ ro.vold.umsdirtyratio=50
 
 # Wi-Fi
 wifi.interface=eth0
-wifi.supplicant_scan_interval=60
+wifi.supplicant_scan_interval=30

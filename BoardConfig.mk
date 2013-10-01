@@ -28,12 +28,11 @@ TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_SMP := true
 
-TARGET_GLOBAL_CFLAGS += -mtune=cortex-a5 -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a5 -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 TARGET_CORTEX_CACHE_LINE_32 := true
 TARGET_USE_SPARROW_BIONIC_OPTIMIZATION := true
-ARCH_ARM_HAVE_32_BYTE_CACHE_LINES := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
 # Kernel 
@@ -50,8 +49,8 @@ TARGET_SPECIFIC_HEADER_PATH := device/huawei/u8833/include
 # Graphics
 BOARD_EGL_CFG := device/huawei/u8833/prebuilt/system/lib/egl/egl.cfg
 USE_OPENGL_RENDERER := true
-TARGET_USES_ION := true
 BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
+TARGET_USES_ION := true
 
 # Video
 COMMON_GLOBAL_CFLAGS += -DQCOM_NO_SECURE_PLAYBACK -DQCOM_BSP
