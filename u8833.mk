@@ -41,7 +41,6 @@ PRODUCT_PACKAGES += \
     libOmxCore \
     libstagefrighthw 
 
-
 # Graphics
 PRODUCT_PACKAGES += \
     copybit.msm7x27a \
@@ -70,8 +69,8 @@ PRODUCT_PACKAGES += \
 # Live Wallpapers
 PRODUCT_PACKAGES += \
     LiveWallpapersPicker \
-    librs_jni	
-	
+    librs_jni
+
 # Other Packages
 PRODUCT_PACKAGES += \
     dexpreopt \
@@ -85,7 +84,6 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8833/ramdisk/init.huawei.usb.rc:root/init.huawei.usb.rc \
     device/huawei/u8833/ramdisk/fstab.huawei:root/fstab.huawei \
     device/huawei/u8833/ramdisk/ueventd.huawei.rc:root/ueventd.huawei.rc \
-    device/huawei/u8833/ramdisk/init.qcom.ril.path.sh:root/init.qcom.ril.path.sh \
     device/huawei/u8833/ramdisk/wifi/ar6000.ko:root/wifi/ar6000.ko \
     device/huawei/u8833/ramdisk/wifi/cfg80211.ko:root/wifi/cfg80211.ko
 	
