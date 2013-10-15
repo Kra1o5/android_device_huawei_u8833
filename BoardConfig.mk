@@ -98,6 +98,7 @@ TARGET_FORCE_CPU_UPLOAD := true
 
 # Recovery
 BOARD_HAS_NO_SELECT_BUTTON := true
+TARGET_PREBUILT_RECOVERY_KERNEL := device/huawei/u8833/recovery/kernel
 TARGET_RECOVERY_INITRC := device/huawei/u8833/recovery/init.rc
 TARGET_RECOVERY_FSTAB := device/huawei/u8833/recovery/etc/recovery.fstab
 BOARD_HAS_LARGE_FILESYSTEM := true
