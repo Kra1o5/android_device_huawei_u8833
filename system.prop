@@ -19,7 +19,6 @@ dalvik.vm.heapmaxfree=2m
 # Display
 debug.sf.hw=1
 debug.hwc.dynThreshold=1.91
-debug.enabletr=false
 hwui.render_dirty_regions=false
 debug.composition.type=dyn
 ro.max.fling_velocity=4000
@@ -54,12 +53,12 @@ persist.thermal.monitor=true
 
 # Telephony
 rild.libargs=-d /dev/smd0
-rild.libpath=/system/lib/libril-qc-1.so
+rild.libpath=/system/lib/libril-qc-qmi-1.so
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false
 ro.telephony.ril_class=HuaweiQualcommRIL
 ro.telephony.ril.v3=qcomdsds
-ro.multi.rild=false
+gsm.version.baseband=2030
 
 # USB
 persist.sys.usb.config=mtp,adb
@@ -70,4 +69,4 @@ ro.vold.umsdirtyratio=50
 
 # Wi-Fi
 wifi.interface=eth0
-wifi.supplicant_scan_interval=30
+wifi.supplicant_scan_interval=60

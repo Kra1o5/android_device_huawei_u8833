@@ -1,9 +1,5 @@
 import init.huawei.usb.rc
 
-on init
-    # Set permissions for persist partition
-    mkdir /persist 0771 system system
-
 on early-init
     mount debugfs debugfs /sys/kernel/debug
 
@@ -148,6 +144,11 @@ on post-fs
     chown system system /sys/devices/platform/msm_hsusb/gadget/switchusb
     chown system system /sys/devices/platform/msm_hsusb/gadget/fixusb
 
+    chown system /sys/devices/platform/rs300000a7.65536/force_sync
+    chown system /sys/devices/platform/rs300000a7.65536/sync_sts
+    chown system /sys/devices/platform/rs300100a7.65536/force_sync
+    chown system /sys/devices/platform/rs300100a7.65536/sync_sts
+	
     # Tweak background writeout
     write /proc/sys/vm/dirty_expire_centisecs 200
     write /proc/sys/vm/dirty_background_ratio  5
@@ -188,11 +189,14 @@ on post-fs
     chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
-service ril-qmi /system/bin/sh /init.qcom.ril.path.sh
-    class main
-    user root
-    oneshot
-
+    write /sys/module/pm2/modes/cpu0/standalone_power_collapse/idle_enabled 1
+    write /sys/module/pm2/modes/cpu1/standalone_power_collapse/idle_enabled 1
+    write /sys/module/pm2/modes/cpu0/standalone_power_collapse/suspend_enabled 1
+    write /sys/module/pm2/modes/cpu1/standalone_power_collapse/suspend_enabled 1
+    write /sys/module/pm2/modes/cpu0/power_collapse/suspend_enabled 1
+    write /sys/module/pm2/modes/cpu0/power_collapse/idle_enabled 1
+    write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 25000
+	
 # Msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
@@ -215,9 +219,6 @@ on post-fs-data
     mkdir /data/misc/audio 0770 audio audio
 
     # Mounting of persist is moved to 'on emmc-fs' and 'on fs' sections
-    # We chown/chmod /persist again so because mount is run as root + defaults
-    chown system system /persist
-    chmod 0771 /persist
     chmod 0664 /sys/devices/platform/msm_sdcc.1/polling
     chmod 0664 /sys/devices/platform/msm_sdcc.2/polling
     chmod 0664 /sys/devices/platform/msm_sdcc.3/polling
@@ -258,11 +259,6 @@ service wlan_detect /system/bin/wlan_detect
     group root
     oneshot
 
-service bridgemgrd /system/bin/bridgemgrd
-    class main
-    user radio
-    group radio
-
 service p2p_supplicant /system/bin/wpa_supplicant -Dnl80211 -ieth0 -e/data/misc/wifi/entropy.bin -puse_p2p_group_interface=1 -W -c/data/misc/wifi/wpa_supplicant.conf
     class main
     group wifi inet
@@ -282,7 +278,7 @@ service dhcpcd_eth0 /system/bin/dhcpcd -BKLG
      disabled
      oneshot
 
-service dhcpcd_eth0 /system/bin/dhcpcd -BKLG
+service dhcpcd_p2p /system/bin/dhcpcd -BKLG
     class main
     disabled
     oneshot
@@ -319,9 +315,6 @@ service qmuxd /system/bin/qmuxd
 	
 service netmgrd /system/bin/netmgrd
     class main
-	
-on property:sys.radio.shutdown=true
-   exec /system/bin/sh /system/etc/init.qcom.efs.sync.sh
 
 service dhcpcd_bt-pan /system/bin/dhcpcd -BKLG
     class late_start 
@@ -337,34 +330,6 @@ service oem_rpc_svc /system/bin/oem_rpc_svc
     class main
     oneshot
 
-service gps_nmea /system/bin/port-bridge /dev/nmea /dev/ttyGS1
-    disabled
-
-
-service compassd /system/bin/compassd
-    class main
-    disabled
-    oneshot
-	    
-service akm8963 /system/bin/akmd8963
-    class main
-    disabled
-    oneshot
-	
-service akm8975 /system/bin/akmd8975
-    class main
-    disabled
-    oneshot
-
-service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
-    class main
-    user root
-    disabled
-    oneshot
-    
-on property:sys.boot_completed=1
-    start qcom-post-boot
-
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class core
 
@@ -376,30 +341,9 @@ service btmac /system/bin/btmac
     class main
     oneshot
 
-on property:net.service.pppd.enable=1
-    exec /system/bin/rmmod pppoe.ko    
-    exec /system/bin/netcfg rmnet0 down
-    start pppd2
-on property:net.service.pppd.enable=0
-    stop pppd2
-    insmod /system/lib/modules/pppoe.ko
-
-service gps_check /system/bin/gps_check
-    class main
-    user root
-    group root
-    oneshot
-
 service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
     user system
     group system
-    disabled
-    
-service pppd-gprs /system/bin/pppd call gprs 
-    class main
-    user root
-    group radio cache inet misc audio sdcard_rw qcom_oncrpc diag
-    oneshot
     disabled
 
 # Start camera server as daemon
