@@ -1,7 +1,7 @@
-From d4e29720bc7ad6dc48bf7c202efc63bb798ffc3c Mon Sep 17 00:00:00 2001
+From 1a14419d2f9eaa1daf7cfd8a2b0e0f3504f14bd7 Mon Sep 17 00:00:00 2001
 From: Robin Humble <plaguedbypenguins@gmail.com>
 Date: Sat, 20 Apr 2013 23:55:23 +1000
-Subject: [PATCH] wpa_supplicant: reduce scan timeout to workaround ar6000
+Subject: [PATCH 2/2] wpa_supplicant: reduce scan timeout to workaround ar6000
  problem
 
 Ar6k hangs on the first scan after resume causing slow wifi reconnects
@@ -14,10 +14,10 @@ on my network.
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/drivers/driver_wext.c b/src/drivers/driver_wext.c
-index 701b7a3..ffcfe8a 100644
+index 0b43c9e..53dc5df 100644
 --- a/src/drivers/driver_wext.c
 +++ b/src/drivers/driver_wext.c
-@@ -1065,7 +1065,7 @@ int wpa_driver_wext_scan(void *priv, struct wpa_driver_scan_params *params)
+@@ -1077,7 +1077,7 @@ int wpa_driver_wext_scan(void *priv, struct wpa_driver_scan_params *params)
  		 * when scan is complete, so use longer timeout to avoid race
  		 * conditions with scanning and following association request.
  		 */

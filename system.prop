@@ -18,8 +18,7 @@ dalvik.vm.heapmaxfree=2m
 
 # Display
 debug.sf.hw=1
-debug.hwc.dynThreshold=1.91
-hwui.render_dirty_regions=false
+debug.hwc.dynThreshold=1.9
 debug.composition.type=dyn
 ro.max.fling_velocity=4000
 ro.opengles.version=131072

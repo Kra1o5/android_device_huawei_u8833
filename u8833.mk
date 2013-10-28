@@ -87,7 +87,7 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8833/ramdisk/init.huawei.usb.rc:root/init.huawei.usb.rc \
     device/huawei/u8833/ramdisk/fstab.huawei:root/fstab.huawei \
     device/huawei/u8833/ramdisk/ueventd.huawei.rc:root/ueventd.huawei.rc \
-	device/huawei/u8833/ramdisk/tp/1191601.img:root/tp/1191601.img \
+    device/huawei/u8833/ramdisk/tp/1191601.img:root/tp/1191601.img \
     device/huawei/u8833/ramdisk/wifi/ar6000.ko:root/wifi/ar6000.ko \
     device/huawei/u8833/ramdisk/wifi/cfg80211.ko:root/wifi/cfg80211.ko
 	
