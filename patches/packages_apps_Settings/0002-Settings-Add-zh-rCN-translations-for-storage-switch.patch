@@ -1,0 +1,28 @@
+From 64804f7d382142cb69f62de7d7d93a597a2b4b96 Mon Sep 17 00:00:00 2001
+From: xjljian <xjlxxx3@gmail.com>
+Date: Sat, 2 Nov 2013 01:26:00 +0800
+Subject: [PATCH 2/2] Settings : Add zh-rCN translations for storage switch
+
+---
+ res/values-zh-rCN/cm_strings.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/res/values-zh-rCN/cm_strings.xml b/res/values-zh-rCN/cm_strings.xml
+index ec1f4b0..4eb5d6a 100644
+--- a/res/values-zh-rCN/cm_strings.xml
++++ b/res/values-zh-rCN/cm_strings.xml
+@@ -729,4 +729,11 @@
+     <string name="privacy_guard_manager_show_system_apps">显示内置应用</string>
+     <string name="privacy_guard_manager_filter_permissions">权限过滤器</string>
+ 
++    <!-- Vold Switchable Pair -->
++    <string name="storage_switch_title">内外存储互换</string>
++    <string name="storage_switch_summary_off">正在使用内置存储作为软件数据及媒体文件的存储</string>
++    <string name="storage_switch_summary_on">正在使用外置SD卡作为软件数据及媒体文件的存储(警告:该状态下请谨慎执行格式化SD卡操作!)</string>
++    <string name="reboot_prompt_title">重启请求</string>
++    <string name="reboot_prompt_message">要使设置生效，必需重启.\n\n立即重启?</string>
++
+ </resources>
+-- 
+1.8.1.2
+
