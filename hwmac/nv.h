@@ -17,7 +17,8 @@ typedef union {
 } nv_item_type;
 
 typedef enum {
-	NV_BT_MAC_ADDRESS_I			= 447
+	NV_BT_MAC_ADDRESS_I			= 447,
+	NV_WLAN_MAC_ADDRESS_I			= 4678
 } nv_items_enum_type;
 
 typedef enum {

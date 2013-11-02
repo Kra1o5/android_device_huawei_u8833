@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The CyanogenMod Project
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,87 +41,25 @@ import com.android.internal.telephony.IccCardStatus;
 import java.util.ArrayList;
 
 /**
- * Custom Qualcomm No SimReady RIL using the latest Uicc stack
+ * Qualcomm RIL class for basebands that do not send the SIM status
+ * piggybacked in RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED. Instead,
+ * these radios will send radio state and we have to query for SIM
+ * status separately.
+ * Custom Qualcomm No SimReady RIL for Huawei
  *
  * {@hide}
  */
-public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
-    protected HandlerThread mIccThread;
-    protected IccHandler mIccHandler;
-    protected String mAid;
-    protected boolean mUSIM = false;
-	
-    protected String[] mLastDataIface = new String[20];
-    boolean RILJ_LOGV = true;
-    boolean RILJ_LOGD = true;
 
+public class HuaweiQualcommRIL extends QualcommSharedRIL implements CommandsInterface {
     private final int RIL_INT_RADIO_OFF = 0;
     private final int RIL_INT_RADIO_UNAVAILABLE = 1;
     private final int RIL_INT_RADIO_ON = 2;
     private final int RIL_INT_RADIO_ON_NG = 10;
     private final int RIL_INT_RADIO_ON_HTC = 13;
 
-	static final int RIL_REQUEST_SIM_TRANSMIT_BASIC = 10026;
-	static final int RIL_REQUEST_SIM_OPEN_CHANNEL = 10027;
-    static final int RIL_REQUEST_SIM_CLOSE_CHANNEL = 10028;
-    static final int RIL_REQUEST_SIM_TRANSMIT_CHANNEL = 10029;
-
-
     public HuaweiQualcommRIL(Context context, int networkMode, int cdmaSubscription) {
         super(context, networkMode, cdmaSubscription);
-        mSetPreferredNetworkType = -1;
         mQANElements = 4;
-    }
-
-    @Override public void
-    supplyIccPin2(String pin, Message result) {
-        supplyIccPin2ForApp(pin, mAid, result);
-    }
-
-    @Override public void
-    changeIccPin2(String oldPin2, String newPin2, Message result) {
-        changeIccPin2ForApp(oldPin2, newPin2, mAid, result);
-    }
-
-    @Override public void
-    supplyIccPuk(String puk, String newPin, Message result) {
-        supplyIccPukForApp(puk, newPin, mAid, result);
-    }
-
-    @Override public void
-    supplyIccPuk2(String puk2, String newPin2, Message result) {
-        supplyIccPuk2ForApp(puk2, newPin2, mAid, result);
-    }
-
-    @Override
-    public void
-    queryFacilityLock(String facility, String password, int serviceClass,
-                            Message response) {
-        queryFacilityLockForApp(facility, password, serviceClass, mAid, response);
-    }
-
-    @Override
-    public void
-    setFacilityLock (String facility, boolean lockState, String password,
-                        int serviceClass, Message response) {
-        setFacilityLockForApp(facility, lockState, password, serviceClass, mAid, response);
-    }
-
-    @Override
-    public void
-    getIMSI(Message result) {
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_GET_IMSI, result);
-
-        rr.mp.writeInt(1);
-        rr.mp.writeString(mAid);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() +
-                              "> getIMSI:RIL_REQUEST_GET_IMSI " +
-                              RIL_REQUEST_GET_IMSI +
-                              " aid: " + mAid +
-                              " " + requestToString(rr.mRequest));
-
-        send(rr);
     }
 
     @Override
@@ -132,7 +70,7 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
         //       but this request is also valid for SIM and RUIM
         RILRequest rr
                 = RILRequest.obtain(RIL_REQUEST_SIM_IO, result);
-   
+
         rr.mp.writeInt(command);
         rr.mp.writeInt(fileid);
         rr.mp.writeString(path);
@@ -152,225 +90,6 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
                     + p1 + "," + p2 + "," + p3);
 
         send(rr);
-    }
-
-    @Override
-	protected Object
-    responseIccCardStatus(Parcel p) {
-          IccCardApplicationStatus appStatus;
-
-        IccCardStatus cardStatus = new IccCardStatus();
-        cardStatus.setCardState(p.readInt());
-        cardStatus.setUniversalPinState(p.readInt());
- 
-        cardStatus.mGsmUmtsSubscriptionAppIndex = p.readInt();
-        cardStatus.mCdmaSubscriptionAppIndex = p.readInt();
-        cardStatus.mImsSubscriptionAppIndex = p.readInt();
-   
-        int numApplications = p.readInt();
-		if (RILJ_LOGD) riljLog( "numApplications " + numApplications);
-        // Limit to maximum allowed applications
-        if (numApplications > IccCardStatus.CARD_MAX_APPS) {
-            numApplications = IccCardStatus.CARD_MAX_APPS;
-        }
-        cardStatus.mApplications = new IccCardApplicationStatus[numApplications];
-	  
-        for (int i = 0; i < numApplications; i++) {
-            appStatus = new IccCardApplicationStatus();
-            appStatus.app_type = appStatus.AppTypeFromRILInt(p.readInt());
-            appStatus.app_state = appStatus.AppStateFromRILInt(p.readInt());
-            appStatus.perso_substate = appStatus.PersoSubstateFromRILInt(p.readInt());
-            appStatus.aid = p.readString();
-            appStatus.app_label = p.readString();
-            appStatus.pin1_replaced = p.readInt();
-            appStatus.pin1 = appStatus.PinStateFromRILInt(p.readInt());
-            appStatus.pin2 = appStatus.PinStateFromRILInt(p.readInt());
-            cardStatus.mApplications[i] = appStatus;
-        }
-        int appIndex = -1;
-        if (mPhoneType == RILConstants.CDMA_PHONE) {
-            appIndex = cardStatus.mCdmaSubscriptionAppIndex;
-            Log.d(LOG_TAG, "This is a CDMA PHONE " + appIndex);
-        } else {
-            appIndex = cardStatus.mGsmUmtsSubscriptionAppIndex;
-            Log.d(LOG_TAG, "This is a GSM PHONE " + appIndex);
-        }
-
-        if (numApplications > 0) {
-            IccCardApplicationStatus application = cardStatus.mApplications[appIndex];
-            mAid = application.aid;
-            mUSIM = application.app_type
-                      == IccCardApplicationStatus.AppType.APPTYPE_USIM;
-		  mSetPreferredNetworkType = mPreferredNetworkType;
-
-            if (TextUtils.isEmpty(mAid))
-               mAid = "";
-            Log.d(LOG_TAG, "mAid " + mAid);
-        }
-
-        return cardStatus;
-    }
-
-    @Override
-    protected DataCallState getDataCallState(Parcel p, int version) {
-        DataCallState dataCall = new DataCallState();
-
-        boolean oldRil = needsOldRilFeature("datacall");
-
-        if (!oldRil && version < 5) {
-            return super.getDataCallState(p, version);
-        } else if (!oldRil) {
-            dataCall.version = version;
-            dataCall.status = p.readInt();
-            dataCall.suggestedRetryTime = p.readInt();
-            dataCall.cid = p.readInt();
-            dataCall.active = p.readInt();
-            dataCall.type = p.readString();
-            dataCall.ifname = p.readString();
-            if ((dataCall.status == DataConnection.FailCause.NONE.getErrorCode()) &&
-                    TextUtils.isEmpty(dataCall.ifname) && dataCall.active != 0) {
-              throw new RuntimeException("getDataCallState, no ifname");
-            }
-            String addresses = p.readString();
-            if (!TextUtils.isEmpty(addresses)) {
-                dataCall.addresses = addresses.split(" ");
-            }
-            String dnses = p.readString();
-            if (!TextUtils.isEmpty(dnses)) {
-                dataCall.dnses = dnses.split(" ");
-            }
-            String gateways = p.readString();
-            if (!TextUtils.isEmpty(gateways)) {
-                dataCall.gateways = gateways.split(" ");
-            }
-        } else {
-            dataCall.version = 4;
-            dataCall.cid = p.readInt();
-            dataCall.active = p.readInt();
-            dataCall.type = p.readString();
-            dataCall.ifname = mLastDataIface[dataCall.cid];
-            p.readString(); // skip APN
-
-            if (TextUtils.isEmpty(dataCall.ifname)) {
-                dataCall.ifname = mLastDataIface[0];
-            }
-
-            String addresses = p.readString();
-            if (!TextUtils.isEmpty(addresses)) {
-                dataCall.addresses = addresses.split(" ");
-            }
-            p.readInt(); // RadioTechnology
-            p.readInt(); // inactiveReason
-
-            dataCall.dnses = new String[2];
-            dataCall.dnses[0] = SystemProperties.get("net."+dataCall.ifname+".dns1");
-            dataCall.dnses[1] = SystemProperties.get("net."+dataCall.ifname+".dns2");
-        }
-
-        return dataCall;
-    }
-
-    @Override
-    protected Object
-    responseSetupDataCall(Parcel p) {
-        DataCallState dataCall;
-
-        boolean oldRil = needsOldRilFeature("datacall");
-
-        if (!oldRil)
-           return super.responseSetupDataCall(p);
-
-        dataCall = new DataCallState();
-        dataCall.version = 4;
-
-        dataCall.cid = 0;
-        p.readString();
-        dataCall.ifname = p.readString();
-        if ((dataCall.status == DataConnection.FailCause.NONE.getErrorCode()) &&
-             TextUtils.isEmpty(dataCall.ifname) && dataCall.active != 0) {
-            throw new RuntimeException(
-                    "RIL_REQUEST_SETUP_DATA_CALL response, no ifname");
-        }
-        /* Use the last digit of the interface id as the cid */
-        if (!needsOldRilFeature("singlepdp")) {
-            dataCall.cid =
-                Integer.parseInt(dataCall.ifname.substring(dataCall.ifname.length() - 1));
-        }
-
-        mLastDataIface[dataCall.cid] = dataCall.ifname;
-
-
-        String addresses = p.readString();
-        if (!TextUtils.isEmpty(addresses)) {
-          dataCall.addresses = addresses.split(" ");
-        }
-
-        dataCall.dnses = new String[2];
-        dataCall.dnses[0] = SystemProperties.get("net."+dataCall.ifname+".dns1");
-        dataCall.dnses[1] = SystemProperties.get("net."+dataCall.ifname+".dns2");
-        dataCall.active = 1;
-        dataCall.status = 0;
-
-        return dataCall;
-    }
-
-    @Override
-    public void getNeighboringCids(Message response) {
-        if (!getRadioState().isOn())
-            return;
-
-        RILRequest rr = RILRequest.obtain(
-                RILConstants.RIL_REQUEST_GET_NEIGHBORING_CELL_IDS, response);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
-
-        send(rr);
-    }
-
-    @Override
-    public void setCurrentPreferredNetworkType() {
-        if (RILJ_LOGD) riljLog("setCurrentPreferredNetworkType: " + mSetPreferredNetworkType);
-        setPreferredNetworkType(mSetPreferredNetworkType, null);
-	if (RILJ_LOGD) riljLog("setCurrentPreferredNetworkType IGNORED");
-    }
-
-    @Override
-    public void setPreferredNetworkType(int networkType , Message response) {
-        /**
-          * If not using a USIM, ignore LTE mode and go to 3G
-          */
-        if (!mUSIM && networkType == RILConstants.NETWORK_MODE_LTE_GSM_WCDMA &&
-                 mSetPreferredNetworkType >= RILConstants.NETWORK_MODE_WCDMA_PREF) {
-            networkType = RILConstants.NETWORK_MODE_WCDMA_PREF;
-        }
-        mSetPreferredNetworkType = networkType;
-
-        super.setPreferredNetworkType(networkType, response);
-    }
-
-    @Override
-    protected Object
-    responseSignalStrength(Parcel p) {
-        int numInts = 12;
-        int response[];
-
-        boolean oldRil = needsOldRilFeature("signalstrength");
-        boolean noLte = false;
-
-        /* TODO: Add SignalStrength class to match RIL_SignalStrength */
-        response = new int[numInts];
-        for (int i = 0 ; i < numInts ; i++) {
-            if ((oldRil || noLte) && i > 6 && i < 12) {
-                response[i] = -1;
-            } else {
-                response[i] = p.readInt();
-            }
-            if (i == 7 && response[i] == 99) {
-                response[i] = -1;
-                noLte = true;
-            }
-        }
-        return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7],response[8], response[9], response[10], response[11], true);
     }
 
     @Override
@@ -395,24 +114,29 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
         Object ret = null;
 
         if (error == 0 || p.dataAvail() > 0) {
-		
-		    /* Convert RIL_REQUEST_GET_MODEM_VERSION back */
+
+            /* Convert RIL_REQUEST_GET_MODEM_VERSION back */
             if (SystemProperties.get("ro.cm.device").indexOf("e73") == 0 &&
                   rr.mRequest == 220) {
                 rr.mRequest = RIL_REQUEST_BASEBAND_VERSION;
             }
 
-            // Either command succeeds or command fails but with data payload
+            // either command succeeds or command fails but with data payload
             try {switch (rr.mRequest) {
-			
+            /*
+ cat libs/telephony/ril_commands.h \
+ | egrep "^ *{RIL_" \
+ | sed -re 's/\{([^,]+),[^,]+,([^}]+).+/case \1: ret = \2(p); break;/'
+             */
             case RIL_REQUEST_GET_SIM_STATUS: ret =  responseIccCardStatus(p); break;
             case RIL_REQUEST_ENTER_SIM_PIN: ret =  responseInts(p); break;
             case RIL_REQUEST_ENTER_SIM_PUK: ret =  responseInts(p); break;
             case RIL_REQUEST_ENTER_SIM_PIN2: ret =  responseInts(p); break;
             case RIL_REQUEST_ENTER_SIM_PUK2: ret =  responseInts(p); break;
             case RIL_REQUEST_CHANGE_SIM_PIN: ret =  responseInts(p); break;
-            case RIL_REQUEST_CHANGE_SIM_PIN2: ret =  responseInts(p); break;
+            case RIL_REQUEST_CHANGE_SIM_PIN2: ret =  responseInts(p); break;          
             case RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION: ret =  responseInts(p); break;
+            
             case RIL_REQUEST_GET_CURRENT_CALLS: ret =  responseCallList(p); break;
             case RIL_REQUEST_DIAL: ret =  responseVoid(p); break;
             case RIL_REQUEST_GET_IMSI: ret =  responseString(p); break;
@@ -522,9 +246,10 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
             case RIL_REQUEST_ACKNOWLEDGE_INCOMING_GSM_SMS_WITH_PDU: ret = responseVoid(p); break;
             case RIL_REQUEST_STK_SEND_ENVELOPE_WITH_STATUS: ret = responseICC_IO(p); break;
             case RIL_REQUEST_VOICE_RADIO_TECH: ret = responseInts(p); break;
+
             default:
                 throw new RuntimeException("Unrecognized solicited response: " + rr.mRequest);
-				
+            //break;
             }} catch (Throwable tr) {
                 // Exceptions here usually mean invalid RIL responses
 
@@ -565,6 +290,19 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
         int dataPosition = p.dataPosition(); // save off position within the Parcel
         int response = p.readInt();
 
+        /* Assume devices needing the "datacall" GB-compatibility flag are
+         * running GB RILs, so skip 1031-1034 for those */
+        if (needsOldRilFeature("datacall")) {
+            switch(response) {
+                 case 1031:
+                 case 1032:
+                 case 1033:
+                 case 1034:
+                     ret = responseVoid(p);
+                     return;
+            }
+        }
+
         switch(response) {
             case RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED: ret =  responseVoid(p); break;
             case RIL_UNSOL_RIL_CONNECTED: ret = responseInts(p); break;
@@ -587,9 +325,9 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
                 int state = p.readInt();
                 setRadioStateFromRILInt(state);
                 break;
-			case RIL_UNSOL_RIL_CONNECTED:
+            case RIL_UNSOL_RIL_CONNECTED:
                 if (RILJ_LOGD) unsljLogRet(response, ret);
-				// Initial conditions
+                // Initial conditions
                 setRadioPower(false, null);
                 setPreferredNetworkType(mPreferredNetworkType, null);
                 setCdmaSubscriptionSource(mCdmaSubscription, null);
@@ -611,7 +349,8 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
         }
     }
 
-    private void setRadioStateFromRILInt (int stateCode) {
+    private void
+    setRadioStateFromRILInt (int stateCode) {
         CommandsInterface.RadioState radioState;
         HandlerThread handlerThread;
         Looper looper;
@@ -648,152 +387,5 @@ public class HuaweiQualcommRIL extends RIL implements CommandsInterface {
         }
 
         setRadioState (radioState);
-    }
-
-    class IccHandler extends Handler implements Runnable {
-        private static final int EVENT_RADIO_ON = 1;
-        private static final int EVENT_ICC_STATUS_CHANGED = 2;
-        private static final int EVENT_GET_ICC_STATUS_DONE = 3;
-        private static final int EVENT_RADIO_OFF_OR_UNAVAILABLE = 4;
-
-        private RIL mRil;
-        private boolean mRadioOn = false;
-
-        public IccHandler (RIL ril, Looper looper) {
-            super (looper);
-            mRil = ril;
-        }
-
-        public void handleMessage (Message paramMessage) {
-            switch (paramMessage.what) {
-                case EVENT_RADIO_ON:
-                    mRadioOn = true;
-                    Log.d(LOG_TAG, "Radio on -> Forcing sim status update");
-                    sendMessage(obtainMessage(EVENT_ICC_STATUS_CHANGED));
-                    break;
-                case EVENT_GET_ICC_STATUS_DONE:
-                    AsyncResult asyncResult = (AsyncResult) paramMessage.obj;
-                    if (asyncResult.exception != null) {
-                        Log.e (LOG_TAG, "IccCardStatusDone shouldn't return exceptions!", asyncResult.exception);
-                        break;
-                    }
-                    IccCardStatus status = (IccCardStatus) asyncResult.result;
-                    if (status.mApplications == null || status.mApplications.length == 0) {
-                        if (!mRil.getRadioState().isOn()) {
-                            break;
-                        }
-
-                        mRil.setRadioState(CommandsInterface.RadioState.RADIO_ON);
-                    } else {
-                        int appIndex = -1;
-                        if (mPhoneType == RILConstants.CDMA_PHONE) {
-                            appIndex = status.mCdmaSubscriptionAppIndex;
-                            Log.d(LOG_TAG, "This is a CDMA PHONE " + appIndex);
-                        } else {
-                            appIndex = status.mGsmUmtsSubscriptionAppIndex;
-                            Log.d(LOG_TAG, "This is a GSM PHONE " + appIndex);
-                        }
-
-                        IccCardApplicationStatus application = status.mApplications[appIndex];
-                        IccCardApplicationStatus.AppState app_state = application.app_state;
-                        IccCardApplicationStatus.AppType app_type = application.app_type;
-
-                        switch (app_state) {
-                            case APPSTATE_PIN:
-                            case APPSTATE_PUK:
-                                switch (app_type) {
-                                    case APPTYPE_SIM:
-                                    case APPTYPE_USIM:
-                                    case APPTYPE_RUIM:
-                                        mRil.setRadioState(CommandsInterface.RadioState.RADIO_ON);
-                                        break;
-                                    default:
-                                        Log.e(LOG_TAG, "Currently we don't handle SIMs of type: " + app_type);
-                                        return;
-                                }
-                                break;
-                            case APPSTATE_READY:
-                                switch (app_type) {
-                                    case APPTYPE_SIM:
-                                    case APPTYPE_USIM:
-                                    case APPTYPE_RUIM:
-                                        mRil.setRadioState(CommandsInterface.RadioState.RADIO_ON);
-                                        break;
-                                    default:
-                                        Log.e(LOG_TAG, "Currently we don't handle SIMs of type: " + app_type);
-                                        return;
-                                }
-                                break;
-                            default:
-                                return;
-                        }
-                    }
-                    break;
-                case EVENT_ICC_STATUS_CHANGED:
-                    if (mRadioOn) {
-                        Log.d(LOG_TAG, "Received EVENT_ICC_STATUS_CHANGED, calling getIccCardStatus");
-                         mRil.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE, paramMessage.obj));
-                    } else {
-                         Log.d(LOG_TAG, "Received EVENT_ICC_STATUS_CHANGED while radio is not ON. Ignoring");
-                    }
-                    break;
-                case EVENT_RADIO_OFF_OR_UNAVAILABLE:
-                    mRadioOn = false;
-					
-                default:
-                    Log.e(LOG_TAG, " Unknown Event " + paramMessage.what);
-                    break;
-            }
-        }
-
-        public void run () {
-            mRil.registerForIccStatusChanged(this, EVENT_ICC_STATUS_CHANGED, null);
-            Message msg = obtainMessage(EVENT_RADIO_ON);
-            mRil.getIccCardStatus(msg);
-        }
-    }
-
-
-    @Override
-    public void
-    supplyNetworkDepersonalization(String netpin, Message result) {
-        RILRequest rr = RILRequest.obtain(RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION, result);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest));
-
-        rr.mp.writeInt(3);
-        rr.mp.writeString(netpin);
-
-        send(rr);
-    }
-	/**
-     * Notify all registrants that the ril has connected or disconnected.
-     *
-     * @param rilVer is the version of the ril or -1 if disconnected.
-     */
-    @Override
-    public void notifyRegistrantsRilConnectionChanged(int rilVer) {
-        mRilVersion = rilVer;
-        if (mRilConnectedRegistrants != null) {
-            mRilConnectedRegistrants.notifyRegistrants(
-                                new AsyncResult (null, new Integer(rilVer), null));
-        }
-    }
-
-    @Override
-    public void
-    setNetworkSelectionModeManual(String operatorNumeric, Message response) {
-        RILRequest rr
-                = RILRequest.obtain(RIL_REQUEST_SET_NETWORK_SELECTION_MANUAL,
-                                    response);
-
-        if (RILJ_LOGD) riljLog(rr.serialString() + "> " + requestToString(rr.mRequest)
-                    + " " + operatorNumeric);
-
-        rr.mp.writeInt(2);
-        rr.mp.writeString(operatorNumeric);
-        rr.mp.writeString("NOCHANGE");
-
-        send(rr);
     }
 }
