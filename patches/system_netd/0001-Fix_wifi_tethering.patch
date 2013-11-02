@@ -1,14 +1,14 @@
-From d8eb8f52e9fef312c33c298926590cb5b26986ab Mon Sep 17 00:00:00 2001
+From 4c92eefbf494613136bddb14781bbbafeaa912d3 Mon Sep 17 00:00:00 2001
 From: Kra1o5 <kra1o5x@gmail.com>
-Date: Sun, 29 Sep 2013 18:09:04 +0200
+Date: Sun, 3 Nov 2013 00:58:22 +0100
 Subject: [PATCH] Fix_wifi_tethering
 
 ---
  Android.mk              |   8 +
  CommandListener.cpp     |   9 +
  SoftapController.h      |   8 +
- SoftapControllerATH.cpp | 880 ++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 905 insertions(+)
+ SoftapControllerATH.cpp | 868 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 893 insertions(+)
  create mode 100644 SoftapControllerATH.cpp
 
 diff --git a/Android.mk b/Android.mk
@@ -85,10 +85,10 @@ index 57241b9..dc04e79 100644
      bool isSoftapStarted();
 diff --git a/SoftapControllerATH.cpp b/SoftapControllerATH.cpp
 new file mode 100644
-index 0000000..ad05d42
+index 0000000..7aa0c99
 --- /dev/null
 +++ b/SoftapControllerATH.cpp
-@@ -0,0 +1,880 @@
+@@ -0,0 +1,868 @@
 +/*
 + * Copyright (C) 2008 The Android Open Source Project
 + *
@@ -135,7 +135,6 @@ index 0000000..ad05d42
 +extern "C" int ifc_up(const char *name);
 +
 +#include "private/android_filesystem_config.h"
-+#include <hardware_legacy/power.h>
 +#include "cutils/properties.h"
 +#ifdef HAVE_LIBC_SYSTEM_PROPERTIES
 +#define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
@@ -159,8 +158,6 @@ index 0000000..ad05d42
 +#define WIFI_DEFAULT_CHANNEL    6
 +#define WIFI_DEFAULT_MAX_STA    8
 +#define WIFI_DEFAULT_PREAMBLE   0
-+
-+#define AP_WAKE_LOCK            "hotspot_wake_lock"
 +
 +static struct wpa_ctrl *ctrl_conn;
 +static char iface[PROPERTY_VALUE_MAX];
@@ -733,14 +730,6 @@ index 0000000..ad05d42
 +        }
 +    }
 +
-+    /*
-+     * WoW does not appear to work correctly in AP mode.
-+     * Just disable it (see startDriver) and stay awake.
-+     */
-+    if (!ret) {
-+        acquire_wake_lock(PARTIAL_WAKE_LOCK, AP_WAKE_LOCK);
-+    }
-+
 +    return ret;
 +
 +}
@@ -793,7 +782,6 @@ index 0000000..ad05d42
 +        close(fd);
 +    }
 +#endif
-+    release_wake_lock(AP_WAKE_LOCK);
 +    usleep(AP_BSS_STOP_DELAY);
 +    return ret;
 +}
@@ -970,5 +958,5 @@ index 0000000..ad05d42
 +}
 +
 -- 
-1.8.1.2
+1.8.4.msysgit.0
 
