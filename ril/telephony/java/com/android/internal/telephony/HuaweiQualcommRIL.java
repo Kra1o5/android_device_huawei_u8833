@@ -315,7 +315,7 @@ public class HuaweiQualcommRIL extends QualcommSharedRIL implements CommandsInte
                 return;
         }
 
-        switch(response) {
+       switch(response) {
             case RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED:
                 int state = p.readInt();
                 setRadioStateFromRILInt(state);
@@ -341,6 +341,19 @@ public class HuaweiQualcommRIL extends QualcommSharedRIL implements CommandsInte
                 break;
             case 1038:
                 break;
+        }
+    }
+
+    /**
+     * Notify all registrants that the ril has connected or disconnected.
+     *
+     * @param rilVer is the version of the ril or -1 if disconnected.
+     */
+    private void notifyRegistrantsRilConnectionChanged(int rilVer) {
+        mRilVersion = rilVer;
+        if (mRilConnectedRegistrants != null) {
+            mRilConnectedRegistrants.notifyRegistrants(
+                                new AsyncResult (null, new Integer(rilVer), null));
         }
     }
 
