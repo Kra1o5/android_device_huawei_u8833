@@ -89,6 +89,7 @@ WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
 BOARD_HAVE_HUAWEI_WIFI := true
+BOARD_HAS_ATH_WLAN := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true

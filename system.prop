@@ -56,7 +56,7 @@ rild.libpath=/system/lib/libril-qc-qmi-1.so
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false
 ro.telephony.ril_class=HuaweiQualcommRIL
-ro.telephony.ril.v3=qcomdsds
+ro.telephony.ril.v3=qcomdsds,skippinpukcount
 gsm.version.baseband=2030
 
 # USB
