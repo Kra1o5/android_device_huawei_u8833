@@ -1,14 +1,12 @@
-From 63466ce8f5a67a0f4819c9aeab425e02cd8f4b24 Mon Sep 17 00:00:00 2001
+From 7a32f6ca6ea0673c5e5a00cedc6e83ca51f8619e Mon Sep 17 00:00:00 2001
 From: Kra1o5 <kra1o5x@gmail.com>
-Date: Thu, 26 Sep 2013 01:41:58 +0200
+Date: Wed, 6 Nov 2013 10:56:02 +0100
 Subject: [PATCH] Fix_wifi_tethering
 
 ---
  Android.mk              |   8 +-
- DnsProxyListener.cpp    |   7 +-
- DnsProxyListener.h      |   3 -
- SoftapControllerATH.cpp | 874 ++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 886 insertions(+), 6 deletions(-)
+ SoftapControllerATH.cpp | 862 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 869 insertions(+), 1 deletion(-)
  create mode 100644 SoftapControllerATH.cpp
 
 diff --git a/Android.mk b/Android.mk
@@ -37,72 +35,12 @@ index 95939df..78d2647 100644
  
  ifneq ($(BOARD_HOSTAPD_DRIVER),)
    LOCAL_CFLAGS += -DHAVE_HOSTAPD
-diff --git a/DnsProxyListener.cpp b/DnsProxyListener.cpp
-index 6c09e69..7da6b43 100644
---- a/DnsProxyListener.cpp
-+++ b/DnsProxyListener.cpp
-@@ -24,6 +24,7 @@
- #include <sys/socket.h>
- #include <sys/types.h>
- #include <string.h>
-+#include <pthread.h>
- 
- #define LOG_TAG "DnsProxyListener"
- #define DBG 0
-@@ -47,7 +48,8 @@ DnsProxyListener::GetAddrInfoHandler::~GetAddrInfoHandler() {
- }
- 
- void DnsProxyListener::GetAddrInfoHandler::start() {
--    pthread_create(&mThread, NULL,
-+    pthread_t thread;
-+    pthread_create(&thread, NULL,
-                    DnsProxyListener::GetAddrInfoHandler::threadStart, this);
- }
- 
-@@ -215,7 +217,8 @@ DnsProxyListener::GetHostByAddrHandler::~GetHostByAddrHandler() {
- }
- 
- void DnsProxyListener::GetHostByAddrHandler::start() {
--    pthread_create(&mThread, NULL,
-+    pthread_t thread;
-+    pthread_create(&thread, NULL,
-                    DnsProxyListener::GetHostByAddrHandler::threadStart, this);
- }
- 
-diff --git a/DnsProxyListener.h b/DnsProxyListener.h
-index 1e24ebd..24c3b6a 100644
---- a/DnsProxyListener.h
-+++ b/DnsProxyListener.h
-@@ -17,7 +17,6 @@
- #ifndef _DNSPROXYLISTENER_H__
- #define _DNSPROXYLISTENER_H__
- 
--#include <pthread.h>
- #include <sysutils/FrameworkListener.h>
- 
- #include "NetdCommand.h"
-@@ -53,7 +52,6 @@ private:
- 
-     private:
-         void run();
--        pthread_t mThread;
-         SocketClient* mClient;  // ref counted
-         char* mHost;    // owned
-         char* mService; // owned
-@@ -85,7 +83,6 @@ private:
- 
-     private:
-         void run();
--        pthread_t mThread;
-         SocketClient* mClient;  // ref counted
-         void* mAddress;    // address to lookup; owned
-         int   mAddressLen; // length of address to look up
 diff --git a/SoftapControllerATH.cpp b/SoftapControllerATH.cpp
 new file mode 100644
-index 0000000..f736992
+index 0000000..c99249c
 --- /dev/null
 +++ b/SoftapControllerATH.cpp
-@@ -0,0 +1,874 @@
+@@ -0,0 +1,862 @@
 +/*
 + * Copyright (C) 2008 The Android Open Source Project
 + *
@@ -149,7 +87,6 @@ index 0000000..f736992
 +extern "C" int ifc_up(const char *name);
 +
 +#include "private/android_filesystem_config.h"
-+#include <hardware_legacy/power.h>
 +#include "cutils/properties.h"
 +#ifdef HAVE_LIBC_SYSTEM_PROPERTIES
 +#define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
@@ -169,8 +106,6 @@ index 0000000..f736992
 +#define WIFI_DEFAULT_CHANNEL    6
 +#define WIFI_DEFAULT_MAX_STA    8
 +#define WIFI_DEFAULT_PREAMBLE   0
-+
-+#define AP_WAKE_LOCK            "hotspot_wake_lock"
 +
 +static struct wpa_ctrl *ctrl_conn;
 +static char iface[PROPERTY_VALUE_MAX];
@@ -742,14 +677,6 @@ index 0000000..f736992
 +        }
 +    }
 +
-+    /*
-+     * WoW does not appear to work correctly in AP mode.
-+     * Just disable it (see startDriver) and stay awake.
-+     */
-+    if (!ret) {
-+        acquire_wake_lock(PARTIAL_WAKE_LOCK, AP_WAKE_LOCK);
-+    }
-+
 +    return ret;
 +
 +}
@@ -802,7 +729,6 @@ index 0000000..f736992
 +        close(fd);
 +    }
 +#endif
-+    release_wake_lock(AP_WAKE_LOCK);
 +    usleep(AP_BSS_STOP_DELAY);
 +    return ret;
 +}

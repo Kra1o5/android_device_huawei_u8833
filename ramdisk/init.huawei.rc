@@ -51,6 +51,8 @@ on post-fs
     chmod 0664 /dev/light
     chmod 0664 /dev/proximity
     chmod 0664 /dev/accel
+    chmod 0664 /dev/compass_aot
+    chmod 0664 /dev/akm8975_dev
 
     # Create QMUX deamon socket area
     mkdir /dev/socket/qmux_radio 0770 radio radio
@@ -262,6 +264,13 @@ on post-fs-data
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
+on property:wlan.driver.status=unloaded
+    start hwmac
+
+service hwmac /system/bin/hwmac
+    class main
+    oneshot
+
 service wlan_detect /system/bin/wlan_detect
     class main
     user root
@@ -351,6 +360,16 @@ service iprenew_bt-pan /system/bin/dhcpcd -n
 
 service oem_rpc_svc /system/bin/oem_rpc_svc
     class main
+    oneshot
+
+service akm8963 /system/bin/akmd8963
+    class main
+    disabled
+    oneshot
+  
+service akm8975 /system/bin/akmd8975
+    class main
+    disabled
     oneshot
 
 service rmt_oeminfo /system/bin/rmt_oeminfo

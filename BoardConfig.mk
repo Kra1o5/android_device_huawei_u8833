@@ -51,6 +51,7 @@ BOARD_EGL_CFG := device/huawei/u8833/prebuilt/system/lib/egl/egl.cfg
 USE_OPENGL_RENDERER := true
 BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
 TARGET_USES_ION := true
+NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 
 # Video
 COMMON_GLOBAL_CFLAGS += -DQCOM_BSP
@@ -72,6 +73,7 @@ WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 WIFI_DRIVER_FW_PATH_P2P          := "p2p"
 BOARD_HAVE_HUAWEI_WIFI := true
+BOARD_HAS_ATH_WLAN := true
 
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true
