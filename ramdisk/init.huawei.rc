@@ -351,6 +351,12 @@ service akm8975 /system/bin/akmd8975
 
 service rmt_oeminfo /system/bin/rmt_oeminfo
     class core
+    
+service gps_check /system/bin/gps_check
+    class main
+    user root
+    group root
+    oneshot
 
 on property:ro.boot.emmc=true
     start rmt_oeminfo
@@ -360,7 +366,7 @@ service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
     user system
     group system
     disabled
-
+    
 # Start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
    class late_start
