@@ -645,13 +645,13 @@ uint32_t AudioHardware::getMvsMode(int format)
     case AudioSystem::EVRC:
         return   MVS_MODE_IS127;
         break;
-/*    case AudioSystem::EVRCB:
+    case AudioSystem::EVRCB:
         return MVS_MODE_4GV_NB;
         break;
     case AudioSystem::EVRCWB:
         return MVS_MODE_4GV_WB;
         break;
-*/    default:
+    default:
         return BAD_INDEX;
     }
 }
@@ -870,9 +870,9 @@ size_t AudioHardware::getInputBufferSize(uint32_t sampleRate, int format, int ch
          (format != AudioSystem::AMR_NB)     &&
          (format != AudioSystem::AMR_WB)     &&
          (format != AudioSystem::EVRC)       &&
-/*         (format != AudioSystem::EVRCB)      &&
+         (format != AudioSystem::EVRCB)      &&
          (format != AudioSystem::EVRCWB)     &&
-*/         (format != AudioSystem::QCELP)      &&
+         (format != AudioSystem::QCELP)      &&
          (format != AudioSystem::AAC)){
         ALOGW("getInputBufferSize bad format: 0x%x", format);
         return 0;
