@@ -1,0 +1,42 @@
+From 54a2f18923e5edcef32e9629ffefc221638ece5c Mon Sep 17 00:00:00 2001
+From: Glenn Kasten <gkasten@google.com>
+Date: Fri, 12 Oct 2012 15:59:28 -0700
+Subject: [PATCH] Fix log spam: Failed to open libwvm.so
+
+Bug: 7342813
+Change-Id: I98852f036e4679a653723fc2bf1435d6e9d7d34c
+---
+ media/libstagefright/WVMExtractor.cpp |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/media/libstagefright/WVMExtractor.cpp b/media/libstagefright/WVMExtractor.cpp
+index d65831d..a81ff84 100644
+--- a/media/libstagefright/WVMExtractor.cpp
++++ b/media/libstagefright/WVMExtractor.cpp
+@@ -72,15 +72,18 @@ WVMExtractor::WVMExtractor(const sp<DataSource> &source)
+     }
+ }
+ 
+-bool WVMExtractor::getVendorLibHandle()
++static void init_routine()
+ {
+-    if (gVendorLibHandle == NULL) {
+-        gVendorLibHandle = dlopen("libwvm.so", RTLD_NOW);
+-    }
+-
++    gVendorLibHandle = dlopen("libwvm.so", RTLD_NOW);
+     if (gVendorLibHandle == NULL) {
+         ALOGW("Failed to open libwvm.so");
+     }
++}
++
++bool WVMExtractor::getVendorLibHandle()
++{
++    static pthread_once_t sOnceControl = PTHREAD_ONCE_INIT;
++    pthread_once(&sOnceControl, init_routine);
+ 
+     return gVendorLibHandle != NULL;
+ }
+-- 
+1.7.9.5
+
