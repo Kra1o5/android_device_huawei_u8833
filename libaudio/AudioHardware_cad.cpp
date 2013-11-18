@@ -80,6 +80,7 @@ static void msm72xx_enable_srs(int flags, bool state);
 #endif /*SRS_PROCESSING*/
 
 static int post_proc_feature_mask = 0;
+static int new_post_proc_feature_mask = 0;
 static bool hpcm_playback_in_progress = false;
 #ifdef QCOM_TUNNEL_LPA_ENABLED
 static bool lpa_playback_in_progress = false;
@@ -393,7 +394,7 @@ AudioStreamIn* AudioHardware::openInputStream(
 
     mLock.lock();
 #ifdef QCOM_VOIP_ENABLED
-    if(devices == AudioSystem::DEVICE_IN_COMMUNICATION) {
+    if((devices == AudioSystem::DEVICE_IN_COMMUNICATION) && (*sampleRate == 8000)) {
         ALOGV("Create Audio stream Voip \n");
         AudioStreamInVoip* inVoip = new AudioStreamInVoip();
         status_t lStatus = NO_ERROR;
@@ -1251,6 +1252,10 @@ status_t AudioHardware::doRouting(AudioStreamInMSM72xx *input, int outputDevice)
                     ALOGI("Routing audio to FM\n");
                     enableDgtlFmDriver = true;
 #endif
+            } else if (outputDevices & AudioSystem::DEVICE_OUT_WIRED_HEADPHONE) {
+                    ALOGI("Routing audio to Wired Headphone\n");
+                    new_snd_device = SND_DEVICE_HEADSET;
+                    new_post_proc_feature_mask = (ADRC_ENABLE | EQ_ENABLE | RX_IIR_ENABLE | MBADRC_ENABLE);
             } else {
                 if (outputDevices & AudioSystem::DEVICE_OUT_SPEAKER) {
                     ALOGI("Routing audio to Speakerphone\n");

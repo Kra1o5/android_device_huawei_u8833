@@ -50,12 +50,11 @@ LOCAL_SHARED_LIBRARIES += libdl
 endif
 
 ifeq ($(strip $(TARGET_HAS_QACT)),true)
-LOCAL_SHARED_LIBRARIES += libaudcal
-endif
-
-# hack for prebuilt
 $(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libaudcal_intermediates/)
 $(shell touch $(OUT)/obj/SHARED_LIBRARIES/libaudcal_intermediates/export_includes)
+
+LOCAL_SHARED_LIBRARIES += libaudcal
+endif
 
 LOCAL_STATIC_LIBRARIES := \
     libmedia_helper \
@@ -68,7 +67,9 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS += -fno-short-enums
 
 LOCAL_C_INCLUDES := $(TARGET_OUT_HEADERS)/mm-audio/audio-alsa
+ifeq ($(strip $(TARGET_HAS_QACT)),true)
 LOCAL_C_INCLUDES += $(TARGET_OUT_HEADERS)/mm-audio/audcal
+endif
 LOCAL_C_INCLUDES += hardware/libhardware/include
 LOCAL_C_INCLUDES += hardware/libhardware_legacy/include
 LOCAL_C_INCLUDES += frameworks/base/include

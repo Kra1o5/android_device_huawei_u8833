@@ -90,7 +90,7 @@
         <item>1</item>
         <item>5</item>
         <item>7</item>
-		<item>9</item>
+	<item>9</item>
     </integer-array>
 
 	<!-- Boolean indicating whether Softap requires reloading AP firmware -->     
@@ -165,9 +165,9 @@
          than the size of the config_autoBrightnessLevels array.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessButtonBacklightValues">
-        <item>20</item>
-        <item>20</item>
-        <item>20</item>
+        <item>255</item>
+        <item>255</item>
+        <item>255</item>
         <item>0</item>
         <item>0</item>
         <item>0</item>
@@ -203,5 +203,9 @@
          For example, a device with Home, Back and Menu keys would set this
          config to 7. -->
     <integer name="config_deviceHardwareKeys">7</integer> 
+
+    <!-- True if the pie service should be started at system start. This is must be true
+         to support pie controls. -->
+    <bool name="config_allowPieService">false</bool>
 
 </resources>
