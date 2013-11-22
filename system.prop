@@ -24,6 +24,11 @@ ro.max.fling_velocity=4000
 ro.opengles.version=131072
 ro.sf.lcd_density=240
 
+# FM Radio
+ro.fm.analogpath.supported=false
+ro.fm.transmitter=false
+ro.fm.mulinst.recording.support=false
+
 # Huawei
 ro.confg.hw_appfsversion=u8833VCM10_1_SYSIMG
 ro.confg.hw_appsbootversion=u8833VCM10_1_APPSBOOT

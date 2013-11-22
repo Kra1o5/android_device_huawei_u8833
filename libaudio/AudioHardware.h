@@ -69,8 +69,8 @@ using android::Condition;
 #define MBADRC_DISABLE 0xFFEF
 #define SRS_ENABLE 0x0020
 #define SRS_DISABLE 0xFFDF
-#define LPA_BUFFER_SIZE 512*1024
-#define BUFFER_COUNT 2
+#define LPA_BUFFER_SIZE 256*1024
+#define BUFFER_COUNT 4
 
 #define AGC_ENABLE     0x0001
 #define NS_ENABLE      0x0002
@@ -250,7 +250,7 @@ private:
     status_t    dumpInternals(int fd, const Vector<String16>& args);
     uint32_t    getInputSampleRate(uint32_t sampleRate);
     bool        checkOutputStandby();
-    status_t    doRouting(AudioStreamInMSM72xx *input, int outputDevice = 0);
+    status_t    doRouting(AudioStreamInMSM72xx *input);
 #ifdef QCOM_FM_ENABLED
     status_t    enableFM();
     status_t    disableFM();

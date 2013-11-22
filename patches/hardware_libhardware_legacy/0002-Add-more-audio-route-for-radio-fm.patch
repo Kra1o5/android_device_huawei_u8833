@@ -1,0 +1,26 @@
+From 25a436011a09312db6194fdb2541cdeaf4e88ab4 Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Wed, 20 Nov 2013 23:04:34 +0100
+Subject: [PATCH] Add-more-audio-route-for-radio-fm
+
+---
+ audio/AudioPolicyManagerBase.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/audio/AudioPolicyManagerBase.cpp b/audio/AudioPolicyManagerBase.cpp
+index 9c48d35..442a183 100644
+--- a/audio/AudioPolicyManagerBase.cpp
++++ b/audio/AudioPolicyManagerBase.cpp
+@@ -2540,6 +2540,10 @@ audio_devices_t AudioPolicyManagerBase::getDeviceForVolume(audio_devices_t devic
+         // selection if not the speaker.
+         if (device & AUDIO_DEVICE_OUT_SPEAKER) {
+             device = AUDIO_DEVICE_OUT_SPEAKER;
++        } else if ((device & AUDIO_DEVICE_OUT_WIRED_HEADSET) != 0) {
++            device = AUDIO_DEVICE_OUT_WIRED_HEADSET;
++        } else if ((device & AUDIO_DEVICE_OUT_WIRED_HEADPHONE) != 0) {
++            device = AUDIO_DEVICE_OUT_WIRED_HEADPHONE;
+         } else {
+             device = (audio_devices_t)(device & AUDIO_DEVICE_OUT_ALL_A2DP);
+         }
+1.8.4.msysgit.0
+

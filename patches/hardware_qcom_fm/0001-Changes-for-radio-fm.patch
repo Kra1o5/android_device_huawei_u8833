@@ -1,0 +1,75 @@
+From da8c37ae1c2b32e2977d34c362ece9f40941ddc3 Mon Sep 17 00:00:00 2001
+From: Kra1o5 <kra1o5x@gmail.com>
+Date: Thu, 21 Nov 2013 11:52:02 +0100
+Subject: [PATCH] Changes for Radio FM
+
+---
+ jni/android_hardware_fm.cpp        | 7 ++++---
+ qcom/fmradio/FmReceiver.java       | 3 ++-
+ qcom/fmradio/FmRxEventListner.java | 2 +-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/jni/android_hardware_fm.cpp b/jni/android_hardware_fm.cpp
+index 7068b83..929d69a 100644
+--- a/jni/android_hardware_fm.cpp
++++ b/jni/android_hardware_fm.cpp
+@@ -57,7 +57,7 @@
+ #define WAIT_TIMEOUT 200000 /* 200*1000us */
+ #define TX_RT_DELIMITER    0x0d
+ #define PS_LEN    9
+-#define STD_BUF_SIZE 256
++#define STD_BUF_SIZE 128
+ enum search_dir_t {
+     SEEK_UP,
+     SEEK_DN,
+@@ -467,10 +467,11 @@ static jint android_hardware_fmradio_FmReceiverJNI_setAnalogModeNative(JNIEnv *
+     /*Enable/Disable Analog Mode FM*/
+     property_set("hw.fm.init", "0");
+     if (aValue) {
+-        property_set("hw.fm.isAnalog", "true");
+-    } else {
+         property_set("hw.fm.isAnalog", "false");
++    } else {
++        property_set("hw.fm.isAnalog", "true");
+     }
++
+     property_set("hw.fm.mode","config_dac");
+     property_set("ctl.start", "fm_dl");
+     sched_yield();
+diff --git a/qcom/fmradio/FmReceiver.java b/qcom/fmradio/FmReceiver.java
+index a474680..d82cb77 100644
+--- a/qcom/fmradio/FmReceiver.java
++++ b/qcom/fmradio/FmReceiver.java
+@@ -29,6 +29,7 @@
+ package qcom.fmradio;
+ 
+ import android.util.Log;
++import android.os.SystemProperties;
+ 
+ /**
+  * This class contains all interfaces and types needed to
+@@ -40,7 +41,7 @@ public class FmReceiver extends FmTransceiver
+ 
+    public static int mSearchState = 0;
+ 
+-   static final int STD_BUF_SIZE = 256;
++   static final int STD_BUF_SIZE = 128;
+    static final int GRP_3A = 64;
+    private static final String TAG = "FMRadio";
+ 
+diff --git a/qcom/fmradio/FmRxEventListner.java b/qcom/fmradio/FmRxEventListner.java
+index 376e430..f25995f 100644
+--- a/qcom/fmradio/FmRxEventListner.java
++++ b/qcom/fmradio/FmRxEventListner.java
+@@ -37,7 +37,7 @@ class FmRxEventListner {
+ 
+     private final int EVENT_LISTEN = 1;
+ 
+-    private final int STD_BUF_SIZE = 256;
++    private final int STD_BUF_SIZE = 128;
+ 
+     private enum FmRxEvents {
+       READY_EVENT,
+-- 
+1.8.4.msysgit.0
+
