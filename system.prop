@@ -1,9 +1,6 @@
 #
 # system.prop for u8833
 #
-
-# Audio
-lpa.decode=true
  
 # Camcorder
 debug.camcorder.disablemeta=0
