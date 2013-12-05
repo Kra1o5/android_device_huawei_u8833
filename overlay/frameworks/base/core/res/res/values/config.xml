@@ -51,6 +51,7 @@
         <item>1</item>
         <item>5</item>
         <item>7</item>
+        <item>9</item>
     </integer-array>
 
     <!-- Boolean indicating whether Softap requires reloading AP firmware -->     
@@ -117,9 +118,9 @@
          than the size of the config_autoBrightnessLevels array.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessButtonBacklightValues">
-        <item>20</item>
-        <item>20</item>
-        <item>20</item>
+        <item>255</item>
+        <item>255</item>
+        <item>255</item>
         <item>0</item>
         <item>0</item>
         <item>0</item>
