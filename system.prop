@@ -9,6 +9,7 @@ debug.camcorder.disablemeta=0
 ro.cwm.enable_key_repeat=true
 
 # Dalvik
+dalvik.vm.debug.alloc=0
 dalvik.vm.heapstartsize=5m
 dalvik.vm.heapgrowthlimit=48m
 dalvik.vm.heapsize=128m
