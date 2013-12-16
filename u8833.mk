@@ -44,25 +44,23 @@ PRODUCT_PACKAGES += \
     copybit.msm7x27a \
     gralloc.msm7x27a \
     hwcomposer.msm7x27a \
-    libgenlock \
     libtilerenderer
 
 # Audio
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
-    audio.primary.u8833 \
-    audio_policy.u8833 \
+    audio.primary.msm7x27a \
+    audio_policy.msm7x27a \
     audio.usb.default \
     libaudioutils
 
 # GPS
 PRODUCT_PACKAGES += \
-    gps.u8833 \
-    libloc_api-rpc
+    gps.msm7x27a
 	
-# u8833 specific	
+# Lights	
 PRODUCT_PACKAGES += \
-    lights.u8833
+    lights.msm7x27a
 	
 # FM Radio
 PRODUCT_PACKAGES += \
@@ -74,11 +72,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     LiveWallpapers \
     LiveWallpapersPicker \
+    VisualizationWallpapers \
     librs_jni	
 	
 # Other Packages
 PRODUCT_PACKAGES += \
-    dexpreopt \
     make_ext4fs \
     setup_fs \
     hwmac \
@@ -95,15 +93,15 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8833/ramdisk/wifi/cfg80211.ko:root/wifi/cfg80211.ko
 	
 PRODUCT_COPY_FILES += \
-  $(call find-copy-subdir-files,*,device/huawei/u8833/prebuilt/system,system)
+    $(call find-copy-subdir-files,*,device/huawei/u8833/prebuilt/system,system)
 
 # Files needed for recovery image
 PRODUCT_COPY_FILES += \
-device/huawei/u8833/recovery/sbin/charge_recovery:/recovery/root/sbin/charge_recovery \
-device/huawei/u8833/recovery/sbin/rmt_storage_recovery:/recovery/root/sbin/rmt_storage_recovery \
-device/huawei/u8833/recovery/sbin/rmt_oeminfo_recovery:/recovery/root/sbin/rmt_oeminfo_recovery \
-device/huawei/u8833/recovery/sbin/linker:/recovery/root/sbin/linker \
-device/huawei/u8833/recovery/sbin/charge.sh:/recovery/root/sbin/charge.sh
+    device/huawei/u8833/recovery/sbin/charge_recovery:/recovery/root/sbin/charge_recovery \
+    device/huawei/u8833/recovery/sbin/rmt_storage_recovery:/recovery/root/sbin/rmt_storage_recovery \
+    device/huawei/u8833/recovery/sbin/rmt_oeminfo_recovery:/recovery/root/sbin/rmt_oeminfo_recovery \
+    device/huawei/u8833/recovery/sbin/linker:/recovery/root/sbin/linker \
+    device/huawei/u8833/recovery/sbin/charge.sh:/recovery/root/sbin/charge.sh
 
 # Install the features available on this device.
 PRODUCT_COPY_FILES += \
@@ -111,7 +109,7 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
-	frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
+    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
     frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
     frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
     frameworks/native/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \

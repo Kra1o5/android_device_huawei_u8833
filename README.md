@@ -13,6 +13,7 @@ Use the following local manifest:
     <manifest>
     <remove-project name="CyanogenMod/android_frameworks_av" />
     <remove-project name="CyanogenMod/android_frameworks_native" />
+    <remove-project name="CyanogenMod/android_hardware_qcom_media-caf" />
     <project path="hardware/atheros/wlan" name="legaCyMod/android_hardware_atheros_wlan" revision="cm-10.1" />
     <project path="frameworks/av" name="Kra1o5/android_frameworks_av" revision="cm-10.1" />
     <project path="frameworks/native" name="Kra1o5/android_frameworks_native" revision="cm-10.1" />
@@ -20,7 +21,7 @@ Use the following local manifest:
     <project name="Kra1o5/android_kernel_huawei_msm8x25-common" path="kernel/huawei/u8833" revision="jb" />
     <project name="Kra1o5/proprietary_vendor_huawei" path="vendor/huawei" revision="cm-10.1" />
     <project name="Kra1o5/android_hardware_qcom_display-legacy" path="hardware/qcom/display-legacy" revision="cm-10.1" />
-    <project name="Kra1o5/android_hardware_qcom_media-legacy" path="hardware/qcom/media_legacy" revision="cm-10.1" />
+    <project name="Kra1o5/android_hardware_qcom_media-caf" path="hardware/qcom/media-caf" revision="cm-10.1" />
 
     <!-- FM Radio -->
     <project path="hardware/qcom/fm" name="legaCyMod/android_hardware_qcom_fm" revision="cm-10.1" />
