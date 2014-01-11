@@ -537,7 +537,6 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
     return qadev->hwif->getInputBufferSize(config->sample_rate,config->format,channelCount);
 }
 
-
 static int adev_open_output_stream(struct audio_hw_device *dev,
                                    audio_io_handle_t handle,
                                    audio_devices_t devices,
