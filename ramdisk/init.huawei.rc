@@ -87,7 +87,10 @@ on post-fs
     # For bridgemgr daemon to inform the USB driver of the correct transport
     chown radio radio /sys/class/android_usb/f_rmnet_smd_sdio/transport
 	
-	exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
+    exec /system/bin/sh /system/etc/init.qcom.thermald_conf.sh
+    
+    # Set buttons backlight brightness value
+    write /sys/class/leds/button-backlight/max_brightness 20
 
     # Configure and enable KSM
     write /sys/kernel/mm/ksm/pages_to_scan 600
