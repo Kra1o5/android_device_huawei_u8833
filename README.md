@@ -23,5 +23,6 @@ Use the following local manifest:
 Sync and build:
 
     repo sync -j4
+    vendor/cm/get-prebuilts
     . build/envsetup.sh
     brunch u8833
