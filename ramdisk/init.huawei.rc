@@ -401,10 +401,9 @@ service qcamerasvr /system/bin/mm-qcamera-daemon
     user media
     group system camera inet audio
 
-service mpdecision /system/bin/mpdecision --Nw 5.4 --Ts 350 --no_sleep --avg_comp --single_core_while_panel_off
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
     class late_start 
     user root
-    disabled
 
 service thermald /system/bin/thermald
     class late_start
