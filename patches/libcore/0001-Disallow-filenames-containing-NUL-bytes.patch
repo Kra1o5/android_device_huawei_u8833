@@ -1,0 +1,243 @@
+From 90b0d9ba00ad1bd46938972245ebca8b53ca2ded Mon Sep 17 00:00:00 2001
+From: Elliott Hughes <enh@google.com>
+Date: Tue, 6 Aug 2013 14:52:30 -0700
+Subject: [PATCH 1/2] Disallow filenames containing NUL bytes.
+
+C code gets confused by such filenames, and even if we can handle them,
+they're a misleading and of questionable utility because a valid pathname
+can't contain a NUL byte.
+
+Bug: https://code.google.com/p/android/issues/detail?id=58465
+Bug: 10148349
+Change-Id: I3f7e1a17c526b6bb5752dae82610125ad2648d54
+(cherry picked from commit b1d05573ae20cdd3d5b4e25f905ce44c8f7d5c0e)
+---
+ luni/src/main/java/java/util/zip/ZipEntry.java     |  13 ++
+ .../java/libcore/java/util/zip/ZipFileTest.java    | 168 ++++++++++++++++++++-
+ 2 files changed, 175 insertions(+), 6 deletions(-)
+
+diff --git a/luni/src/main/java/java/util/zip/ZipEntry.java b/luni/src/main/java/java/util/zip/ZipEntry.java
+index 75e319d..3c0b9e8 100644
+--- a/luni/src/main/java/java/util/zip/ZipEntry.java
++++ b/luni/src/main/java/java/util/zip/ZipEntry.java
+@@ -21,6 +21,7 @@ import java.io.IOException;
+ import java.io.InputStream;
+ import java.nio.ByteOrder;
+ import java.nio.charset.Charsets;
++import java.util.Arrays;
+ import java.util.Calendar;
+ import java.util.Date;
+ import java.util.GregorianCalendar;
+@@ -379,6 +380,9 @@ public class ZipEntry implements ZipConstants, Cloneable {
+ 
+         byte[] nameBytes = new byte[nameLength];
+         Streams.readFully(in, nameBytes, 0, nameBytes.length);
++        if (containsNulByte(nameBytes)) {
++            throw new ZipException("Filename contains NUL byte: " + Arrays.toString(nameBytes));
++        }
+         name = new String(nameBytes, 0, nameBytes.length, Charsets.UTF_8);
+ 
+         // The RI has always assumed UTF-8. (If GPBF_UTF8_FLAG isn't set, the encoding is
+@@ -394,4 +398,13 @@ public class ZipEntry implements ZipConstants, Cloneable {
+             Streams.readFully(in, extra, 0, extraLength);
+         }
+     }
++
++    private static boolean containsNulByte(byte[] bytes) {
++        for (byte b : bytes) {
++            if (b == 0) {
++                return true;
++            }
++        }
++        return false;
++    }
+ }
+diff --git a/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java b/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
+index afceaba..0ac61aa 100644
+--- a/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
++++ b/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
+@@ -32,7 +32,6 @@ import java.util.zip.ZipFile;
+ import java.util.zip.ZipInputStream;
+ import java.util.zip.ZipOutputStream;
+ import junit.framework.TestCase;
+-import libcore.io.IoUtils;
+ 
+ public final class ZipFileTest extends TestCase {
+ 
+@@ -139,11 +138,168 @@ public final class ZipFileTest extends TestCase {
+         ZipEntry entry = new ZipEntry("random");
+         out.putNextEntry(entry);
+ 
+-        byte[] writeBuffer = new byte[8192];
+-        Random random = new Random();
+-        for (int i = 0; i < uncompressedSize; i += writeBuffer.length) {
+-            random.nextBytes(writeBuffer);
+-            out.write(writeBuffer, 0, Math.min(writeBuffer.length, uncompressedSize - i));
++            ze.setSize(0);
++
++            assertEquals(0, ze.getSize());
++            assertEquals(-1, ze.getCompressedSize());
++
++            out.putNextEntry(ze);
++
++            assertEquals(0, ze.getSize());
++            assertEquals(0, ze.getCompressedSize());
++        }
++
++        // Mismatched size and compressed size => failure.
++        try {
++            ZipEntry ze = new ZipEntry("a");
++            ze.setMethod(ZipEntry.STORED);
++            ze.setCrc(crc.getValue());
++            ze.setCompressedSize(1);
++            ze.setSize(0);
++            out.putNextEntry(ze);
++            fail();
++        } catch (ZipException expected) {
++        }
++
++        // Everything present => success.
++        ZipEntry ze = new ZipEntry("okay");
++        ze.setMethod(ZipEntry.STORED);
++        ze.setCrc(crc.getValue());
++        ze.setSize(0);
++        ze.setCompressedSize(0);
++        out.putNextEntry(ze);
++
++        out.close();
++    }
++
++    private String makeString(int count, String ch) {
++        StringBuilder sb = new StringBuilder();
++        for (int i = 0; i < count; ++i) {
++            sb.append(ch);
++        }
++        return sb.toString();
++    }
++
++    public void testComments() throws Exception {
++        String expectedFileComment = "1 \u0666 2";
++        String expectedEntryComment = "a \u0666 b";
++
++        File file = createTemporaryZipFile();
++        ZipOutputStream out = createZipOutputStream(file);
++
++        // Is file comment length checking done on bytes or characters? (Should be bytes.)
++        out.setComment(null);
++        out.setComment(makeString(0xffff, "a"));
++        try {
++            out.setComment(makeString(0xffff + 1, "a"));
++            fail();
++        } catch (IllegalArgumentException expected) {
++        }
++        try {
++            out.setComment(makeString(0xffff, "\u0666"));
++            fail();
++        } catch (IllegalArgumentException expected) {
++        }
++
++        ZipEntry ze = new ZipEntry("a");
++
++        // Is entry comment length checking done on bytes or characters? (Should be bytes.)
++        ze.setComment(null);
++        ze.setComment(makeString(0xffff, "a"));
++        try {
++            ze.setComment(makeString(0xffff + 1, "a"));
++            fail();
++        } catch (IllegalArgumentException expected) {
++        }
++        try {
++            ze.setComment(makeString(0xffff, "\u0666"));
++            fail();
++        } catch (IllegalArgumentException expected) {
++        }
++
++        ze.setComment(expectedEntryComment);
++        out.putNextEntry(ze);
++        out.closeEntry();
++
++        out.setComment(expectedFileComment);
++        out.close();
++
++        ZipFile zipFile = new ZipFile(file);
++        assertEquals(expectedFileComment, zipFile.getComment());
++        assertEquals(expectedEntryComment, zipFile.getEntry("a").getComment());
++        zipFile.close();
++    }
++
++    public void test_getComment_unset() throws Exception {
++        File file = createTemporaryZipFile();
++        ZipOutputStream out = createZipOutputStream(file);
++        ZipEntry ze = new ZipEntry("test entry");
++        ze.setComment("per-entry comment");
++        out.putNextEntry(ze);
++        out.close();
++
++        ZipFile zipFile = new ZipFile(file);
++        assertEquals(null, zipFile.getComment());
++    }
++
++    // https://code.google.com/p/android/issues/detail?id=58465
++    public void test_NUL_in_filename() throws Exception {
++        File file = createTemporaryZipFile();
++
++        // We allow creation of a ZipEntry whose name contains a NUL byte,
++        // mainly because it's not likely to happen by accident and it's useful for testing.
++        ZipOutputStream out = createZipOutputStream(file);
++        out.putNextEntry(new ZipEntry("hello"));
++        out.putNextEntry(new ZipEntry("hello\u0000"));
++        out.close();
++
++        // But you can't open a ZIP file containing such an entry, because we reject it
++        // when we find it in the central directory.
++        try {
++            ZipFile zipFile = new ZipFile(file);
++            fail();
++        } catch (ZipException expected) {
++        }
++    }
++
++    public void testNameLengthChecks() throws IOException {
++        // Is entry name length checking done on bytes or characters?
++        // Really it should be bytes, but the RI only checks characters at construction time.
++        // Android does the same, because it's cheap...
++        try {
++            new ZipEntry((String) null);
++            fail();
++        } catch (NullPointerException expected) {
++        }
++        new ZipEntry(makeString(0xffff, "a"));
++        try {
++            new ZipEntry(makeString(0xffff + 1, "a"));
++            fail();
++        } catch (IllegalArgumentException expected) {
++        }
++
++        // ...but Android won't let you create a zip file with a truncated name.
++        ZipOutputStream out = createZipOutputStream(createTemporaryZipFile());
++        ZipEntry ze = new ZipEntry(makeString(0xffff, "\u0666"));
++        try {
++            out.putNextEntry(ze);
++            fail(); // The RI fails this test; it just checks the character count at construction time.
++        } catch (IllegalArgumentException expected) {
++        }
++        out.closeEntry();
++        out.putNextEntry(new ZipEntry("okay")); // ZipOutputStream.close throws if you add nothing!
++        out.close();
++    }
++
++    public void testCrc() throws IOException {
++        ZipEntry ze = new ZipEntry("test");
++        ze.setMethod(ZipEntry.STORED);
++        ze.setSize(4);
++
++        // setCrc takes a long, not an int, so -1 isn't a valid CRC32 (because it's 64 bits).
++        try {
++            ze.setCrc(-1);
++        } catch (IllegalArgumentException expected) {
+         }
+ 
+         out.closeEntry();
+-- 
+1.9.1
+
