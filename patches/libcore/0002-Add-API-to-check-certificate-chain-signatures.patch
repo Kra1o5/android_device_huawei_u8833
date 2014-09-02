@@ -1,0 +1,202 @@
+From 149e2d3e669f2a66f43d62aabe9fa31ccf5af7a0 Mon Sep 17 00:00:00 2001
+From: Kenny Root <kroot@google.com>
+Date: Thu, 17 Apr 2014 11:23:00 -0700
+Subject: [PATCH 2/2] Add API to check certificate chain signatures
+
+Add hidden API to check certificate chain signatures when needed. The
+getCertificates implementation returns a list of all the certificates and
+chains and would expect any caller interested in verifying actual chains
+to call getCodeSigners instead.
+
+We add this hidden constructor as a stop-gap until we can switch callers
+over to getCodeSigners.
+
+Bug: 13678484
+Change-Id: I01cddef287767422454de4c5fd266c812a04d570
+---
+ luni/src/main/java/java/util/jar/JarFile.java      | 24 +++++++++++++++--
+ luni/src/main/java/java/util/jar/JarVerifier.java  | 18 +++++++++++--
+ .../apache/harmony/security/utils/JarUtils.java    | 30 ++++++++++++++++++----
+ 3 files changed, 63 insertions(+), 9 deletions(-)
+
+diff --git a/luni/src/main/java/java/util/jar/JarFile.java b/luni/src/main/java/java/util/jar/JarFile.java
+index e129e82..494f5d2 100644
+--- a/luni/src/main/java/java/util/jar/JarFile.java
++++ b/luni/src/main/java/java/util/jar/JarFile.java
+@@ -184,9 +184,19 @@ public class JarFile extends ZipFile {
+      *             If the file cannot be read.
+      */
+     public JarFile(File file, boolean verify, int mode) throws IOException {
++        this(file, verify, mode, false);
++    }
++
++    /**
++     * See previous constructor for other parameter definitions.
++     * @param chainCheck
++     *            whether or not to check certificate chain signatures
++     * @hide
++     */
++    public JarFile(File file, boolean verify, int mode, boolean chainCheck) throws IOException {
+         super(file, mode);
+         if (verify) {
+-            verifier = new JarVerifier(file.getPath());
++            verifier = new JarVerifier(file.getPath(), chainCheck);
+         }
+         readMetaEntries();
+     }
+@@ -216,9 +226,19 @@ public class JarFile extends ZipFile {
+      *             If file cannot be opened or read.
+      */
+     public JarFile(String filename, boolean verify) throws IOException {
++        this(filename, verify, false);
++    }
++
++    /**
++     * See previous constructor for other parameter definitions.
++     * @param chainCheck
++     *            whether or not to check certificate chain signatures
++     * @hide
++     */
++    public JarFile(String filename, boolean verify, boolean chainCheck) throws IOException {
+         super(filename);
+         if (verify) {
+-            verifier = new JarVerifier(filename);
++            verifier = new JarVerifier(filename, chainCheck);
+         }
+         readMetaEntries();
+     }
+diff --git a/luni/src/main/java/java/util/jar/JarVerifier.java b/luni/src/main/java/java/util/jar/JarVerifier.java
+index ec0e088..640f13c 100644
+--- a/luni/src/main/java/java/util/jar/JarVerifier.java
++++ b/luni/src/main/java/java/util/jar/JarVerifier.java
+@@ -68,6 +68,9 @@ class JarVerifier {
+ 
+     int mainAttributesEnd;
+ 
++    /** Whether or not to check certificate chain signatures. */
++    private final boolean chainCheck;
++
+     /**
+      * Stores and a hash and a message digest and verifies that massage digest
+      * matches the hash.
+@@ -137,13 +140,23 @@ class JarVerifier {
+     }
+ 
+     /**
++     * Convenience constructor for backward compatibility.
++     */
++    JarVerifier(String name) {
++        this(name, false);
++    }
++
++    /**
+      * Constructs and returns a new instance of {@code JarVerifier}.
+      *
+      * @param name
+      *            the name of the JAR file being verified.
++     * @param chainCheck
++     *            whether to check the certificate chain signatures
+      */
+-    JarVerifier(String name) {
++    JarVerifier(String name, boolean chainCheck) {
+         jarName = name;
++        this.chainCheck = chainCheck;
+     }
+ 
+     /**
+@@ -288,7 +301,8 @@ class JarVerifier {
+         try {
+             Certificate[] signerCertChain = JarUtils.verifySignature(
+                     new ByteArrayInputStream(sfBytes),
+-                    new ByteArrayInputStream(sBlockBytes));
++                    new ByteArrayInputStream(sBlockBytes),
++                    chainCheck);
+             /*
+              * Recursive call in loading security provider related class which
+              * is in a signed JAR.
+diff --git a/luni/src/main/java/org/apache/harmony/security/utils/JarUtils.java b/luni/src/main/java/org/apache/harmony/security/utils/JarUtils.java
+index f6efb8a..de3cdea 100644
+--- a/luni/src/main/java/org/apache/harmony/security/utils/JarUtils.java
++++ b/luni/src/main/java/org/apache/harmony/security/utils/JarUtils.java
+@@ -52,18 +52,27 @@ public class JarUtils {
+         new int[] {1, 2, 840, 113549, 1, 9, 4};
+ 
+     /**
++     * @see #verifySignature(InputStream, InputStream, boolean)
++     */
++    public static Certificate[] verifySignature(InputStream signature, InputStream signatureBlock)
++            throws IOException, GeneralSecurityException {
++        return verifySignature(signature, signatureBlock, false);
++    }
++
++    /**
+      * This method handle all the work with  PKCS7, ASN1 encoding, signature verifying,
+      * and certification path building.
+      * See also PKCS #7: Cryptographic Message Syntax Standard:
+      * http://www.ietf.org/rfc/rfc2315.txt
+      * @param signature - the input stream of signature file to be verified
+      * @param signatureBlock - the input stream of corresponding signature block file
++     * @param chainCheck - whether to validate certificate chain signatures
+      * @return array of certificates used to verify the signature file
+      * @throws IOException - if some errors occurs during reading from the stream
+      * @throws GeneralSecurityException - if signature verification process fails
+      */
+     public static Certificate[] verifySignature(InputStream signature, InputStream
+-            signatureBlock) throws IOException, GeneralSecurityException {
++            signatureBlock, boolean chainCheck) throws IOException, GeneralSecurityException {
+ 
+         BerInputStream bis = new BerInputStream(signatureBlock);
+         ContentInfo info = (ContentInfo)ContentInfo.ASN1.decode(bis);
+@@ -171,10 +180,11 @@ public class JarUtils {
+             throw new SecurityException("Incorrect signature");
+         }
+ 
+-        return createChain(certs[issuerSertIndex], certs);
++        return createChain(certs[issuerSertIndex], certs, chainCheck);
+     }
+ 
+-    private static X509Certificate[] createChain(X509Certificate  signer, X509Certificate[] candidates) {
++    private static X509Certificate[] createChain(X509Certificate  signer,
++            X509Certificate[] candidates, boolean chainCheck) {
+         LinkedList chain = new LinkedList();
+         chain.add(0, signer);
+ 
+@@ -185,9 +195,10 @@ public class JarUtils {
+ 
+         Principal issuer = signer.getIssuerDN();
+         X509Certificate issuerCert;
++        X509Certificate subjectCert = signer;
+         int count = 1;
+         while (true) {
+-            issuerCert = findCert(issuer, candidates);
++            issuerCert = findCert(issuer, candidates, subjectCert, chainCheck);
+             if( issuerCert == null) {
+                 break;
+             }
+@@ -197,13 +208,22 @@ public class JarUtils {
+                 break;
+             }
+             issuer = issuerCert.getIssuerDN();
++            subjectCert = issuerCert;
+         }
+         return (X509Certificate[])chain.toArray(new X509Certificate[count]);
+     }
+ 
+-    private static X509Certificate findCert(Principal issuer, X509Certificate[] candidates) {
++    private static X509Certificate findCert(Principal issuer, X509Certificate[] candidates,
++            X509Certificate subjectCert, boolean chainCheck) {
+         for (int i = 0; i < candidates.length; i++) {
+             if (issuer.equals(candidates[i].getSubjectDN())) {
++                if (chainCheck) {
++                    try {
++                        subjectCert.verify(candidates[i].getPublicKey());
++                    } catch (Exception e) {
++                        continue;
++                    }
++                }
+                 return candidates[i];
+             }
+         }
+-- 
+1.9.1
+

@@ -1,0 +1,96 @@
+From d497b8cdaf7167f1e00741572878daa70f6b567e Mon Sep 17 00:00:00 2001
+From: Elliott Hughes <enh@google.com>
+Date: Tue, 6 Aug 2013 14:52:30 -0700
+Subject: [PATCH 1/2] Disallow filenames containing NUL bytes.
+
+C code gets confused by such filenames, and even if we can handle them,
+they're a misleading and of questionable utility because a valid pathname
+can't contain a NUL byte.
+
+Bug: https://code.google.com/p/android/issues/detail?id=58465
+Bug: 10148349
+Change-Id: I3f7e1a17c526b6bb5752dae82610125ad2648d54
+(cherry picked from commit b1d05573ae20cdd3d5b4e25f905ce44c8f7d5c0e)
+---
+ luni/src/main/java/java/util/zip/ZipEntry.java      | 13 +++++++++++++
+ .../java/libcore/java/util/zip/ZipFileTest.java     | 21 ++++++++++++++++++++-
+ 2 files changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/luni/src/main/java/java/util/zip/ZipEntry.java b/luni/src/main/java/java/util/zip/ZipEntry.java
+index 685c1be..ab48625 100644
+--- a/luni/src/main/java/java/util/zip/ZipEntry.java
++++ b/luni/src/main/java/java/util/zip/ZipEntry.java
+@@ -21,6 +21,7 @@ import java.io.IOException;
+ import java.io.InputStream;
+ import java.nio.ByteOrder;
+ import java.nio.charset.Charsets;
++import java.util.Arrays;
+ import java.util.Calendar;
+ import java.util.Date;
+ import java.util.GregorianCalendar;
+@@ -391,6 +392,9 @@ public class ZipEntry implements ZipConstants, Cloneable {
+ 
+         byte[] nameBytes = new byte[nameLength];
+         Streams.readFully(in, nameBytes, 0, nameBytes.length);
++        if (containsNulByte(nameBytes)) {
++            throw new ZipException("Filename contains NUL byte: " + Arrays.toString(nameBytes));
++        }
+         name = new String(nameBytes, 0, nameBytes.length, Charsets.UTF_8);
+ 
+         // The RI has always assumed UTF-8. (If GPBF_UTF8_FLAG isn't set, the encoding is
+@@ -406,4 +410,13 @@ public class ZipEntry implements ZipConstants, Cloneable {
+             Streams.readFully(in, extra, 0, extraLength);
+         }
+     }
++
++    private static boolean containsNulByte(byte[] bytes) {
++        for (byte b : bytes) {
++            if (b == 0) {
++                return true;
++            }
++        }
++        return false;
++    }
+ }
+diff --git a/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java b/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
+index 49dc050..f77ce73 100644
+--- a/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
++++ b/luni/src/test/java/libcore/java/util/zip/ZipFileTest.java
+@@ -33,7 +33,6 @@ import java.util.zip.ZipFile;
+ import java.util.zip.ZipInputStream;
+ import java.util.zip.ZipOutputStream;
+ import junit.framework.TestCase;
+-import libcore.io.IoUtils;
+ 
+ public final class ZipFileTest extends TestCase {
+     /**
+@@ -366,6 +365,26 @@ public final class ZipFileTest extends TestCase {
+         zipFile.close();
+     }
+ 
++    // https://code.google.com/p/android/issues/detail?id=58465
++    public void test_NUL_in_filename() throws Exception {
++        File file = createTemporaryZipFile();
++
++        // We allow creation of a ZipEntry whose name contains a NUL byte,
++        // mainly because it's not likely to happen by accident and it's useful for testing.
++        ZipOutputStream out = createZipOutputStream(file);
++        out.putNextEntry(new ZipEntry("hello"));
++        out.putNextEntry(new ZipEntry("hello\u0000"));
++        out.close();
++
++        // But you can't open a ZIP file containing such an entry, because we reject it
++        // when we find it in the central directory.
++        try {
++            ZipFile zipFile = new ZipFile(file);
++            fail();
++        } catch (ZipException expected) {
++        }
++    }
++
+     public void testNameLengthChecks() throws IOException {
+         // Is entry name length checking done on bytes or characters?
+         // Really it should be bytes, but the RI only checks characters at construction time.
+-- 
+1.9.1
+
