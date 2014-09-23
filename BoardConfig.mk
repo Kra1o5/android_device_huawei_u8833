@@ -77,9 +77,6 @@ BOARD_HAS_ATH_WLAN := true
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true
 
-# Lights
-TARGET_PROVIDES_LIBLIGHTS := true
-
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 

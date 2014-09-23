@@ -59,10 +59,6 @@ PRODUCT_PACKAGES += \
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm7x27a
-	
-# Lights	
-PRODUCT_PACKAGES += \
-    lights.msm7x27a
 
 # FM Radio
 PRODUCT_PACKAGES += \
