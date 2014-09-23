@@ -93,9 +93,6 @@ BOARD_HAS_ATH_WLAN := true
 # Audio
 TARGET_PROVIDES_LIBAUDIO := true
 
-# Lights
-TARGET_PROVIDES_LIBLIGHTS := true
-
 # RIL
 BOARD_RIL_CLASS := ../../../device/huawei/u8833/ril/
 
