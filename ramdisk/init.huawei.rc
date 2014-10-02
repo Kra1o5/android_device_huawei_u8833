@@ -359,11 +359,6 @@ service gps_check /system/bin/gps_check
 on property:ro.boot.emmc=true
     start rmt_oeminfo
     start rmt_storage
-
-service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
-    user system
-    group system
-    disabled
     
 # Start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
