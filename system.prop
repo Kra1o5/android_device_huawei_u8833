@@ -2,6 +2,9 @@
 # system.prop for u8833
 #
 
+# Bluetooth
+ro.bt.bdaddr_path=/data/misc/bluedroid/bdaddr
+
 # Camcorder
 debug.camcorder.disablemeta=0
 
