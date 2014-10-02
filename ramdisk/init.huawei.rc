@@ -390,11 +390,6 @@ service abtfilt /system/bin/abtfilt -a -d -z -n -q -v -s -w eth0
     disabled
     oneshot
 
-service qosmgrd /system/bin/qosmgr /system/etc/qosmgr_rules.xml
-    user system
-    group system
-    disabled
-
 # Start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
     class late_start
